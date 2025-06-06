@@ -173,6 +173,7 @@
     "helmet": "^8.1.0",
     "isolated-vm": "^5.0.4",
     "lucide-react": "^0.511.0",
+    "mongodb-memory-server": "^10.1.4",
     "morgan": "^1.10.0",
     "mysql2": "^3.14.1",
     "react": "^19.1.0",

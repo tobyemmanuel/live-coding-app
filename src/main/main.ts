@@ -97,7 +97,7 @@ ipcMain.handle('execute-code', async (event, { code, language, testCases }) => {
     // const results = await executeCode(code, language, testCases)
     // return { success: true, results }
     return { success: true }
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, error: error.message }
   }
 })
@@ -110,7 +110,7 @@ ipcMain.handle('get-system-info', async () => {
       platform: os.platform(),
       release: os.release(),
     }
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Failed to get system info: ${error.message}`)
   }
 })
@@ -119,7 +119,7 @@ ipcMain.handle('get-system-info', async () => {
 ipcMain.handle('read-file', async (event, filePath) => {
   try {
     return fs.readFileSync(filePath, 'utf8')
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Failed to read file: ${error.message}`)
   }
 })
@@ -128,7 +128,7 @@ ipcMain.handle('write-file', async (event, filePath, data) => {
   try {
     fs.writeFileSync(filePath, data)
     return true
-  } catch (error) {
+  } catch (error: any) {
     throw new Error(`Failed to write file: ${error.message}`)
   }
 })
