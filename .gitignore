@@ -1,0 +1,6 @@
+/node_modules
+/release
+/dist
+/data
+.env
+/src/renderer/dist-electron

@@ -1,0 +1,183 @@
+{
+  "name": "DevByteTest",
+  "version": "1.0.0",
+  "description": "Live exam platform with live coding using monaco Editor for those with limited server resources. Suitable for testing students and interns at remote coding bootcamps and classes.",
+  "main": "dist/main/main.js",
+  "author": "Oluwatobi Adelabu",
+  "contributors": [
+    "Owolabi Shinayomi"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "dev": "npm run build:main && concurrently \"npm run server:dev\" \"npm run electron:dev\"",
+    "server:dev": "cross-env NODE_ENV=development tsx watch src/server/index.ts",
+    "electron:dev": "concurrently \"npm run renderer:dev\" \"npm run main:watch\" \"wait-on http://localhost:3001 && wait-on http://localhost:5173 && wait-on dist/main/main.js && electron .\"",
+    "renderer:dev": "vite",
+    "main:watch": "concurrently \"tsc -p tsconfig.main.json --watch\" \"tsc -p tsconfig.preload.json --watch\"",
+    "build": "npm run build:renderer && npm run build:main && npm run build:preload && npm run build:server",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:preload": "tsc -p tsconfig.preload.json",
+    "build:server": "tsc -p tsconfig.server.json",
+    "preview": "vite preview",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:all": "npm run build && electron-builder --win --mac --linux",
+    "clean": "rimraf dist release",
+    "postinstall": "npm run build:main && npm run build:preload",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
+  },
+  "build": {
+    "appId": "com.itrtw.devbytetest",
+    "productName": "DevByteTest",
+    "copyright": "Copyright © 2025 ITRTW",
+    "directories": {
+      "output": "release",
+      "app": "dist"
+    },
+    "files": [
+      "dist/**/*",
+      "!dist/server/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/server",
+        "to": "server"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist",
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "publisherName": "ITRTW"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "tobyemmanuel",
+      "repo": "live-coding-app"
+    }
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/compression": "^1.8.0",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "@vitejs/plugin-react": "^4.4.1",
+    "autoprefixer": "^10.4.21",
+    "better-sqlite3": "^11.10.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^36.2.1",
+    "electron-builder": "^26.0.12",
+    "eslint": "^9.27.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.4.0",
+    "postcss": "^8.5.3",
+    "prettier": "^3.5.3",
+    "rimraf": "^6.0.1",
+    "tailwindcss": "^4.1.7",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "wait-on": "^8.0.3"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.7",
+    "axios": "^1.9.0",
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "framer-motion": "^12.12.1",
+    "helmet": "^8.1.0",
+    "isolated-vm": "^5.0.4",
+    "lucide-react": "^0.511.0",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.14.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
+  }
+}
