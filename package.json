@@ -165,6 +165,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.7",
     "axios": "^1.9.0",
+    "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -178,6 +179,7 @@
     "mysql2": "^3.14.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7",
     "uuid": "^11.1.0"
   }
