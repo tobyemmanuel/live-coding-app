@@ -7,7 +7,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss(),
+    tailwindcss({
+      config: resolve(__dirname, 'tailwind.config.js'), // Explicitly specify config path
+    }),
     electron([
       {
         entry: resolve(import.meta.dirname, 'src/main/main.ts'),
@@ -40,5 +42,33 @@ export default defineConfig({
   server: {
     port: 5173,
     host: '127.0.0.1',
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => {
+          console.log(`Proxying HTTP request: ${path}`)
+          return path
+        },
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            console.log(
+              `Proxy request: ${req.method} ${req.url} to ${proxyReq.path}`
+            )
+          })
+          proxy.on('error', (err) => {
+            console.error('Proxy error:', err)
+          })
+        },
+      },
+      '/assets': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        rewrite: (path) => {
+          console.log(`Proxying assets request: ${path}`)
+          return path
+        },
+      },
+    },
   },
 })

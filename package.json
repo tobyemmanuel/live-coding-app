@@ -9,11 +9,12 @@
   ],
   "license": "MIT",
   "scripts": {
-    "dev": "npm run build:main && concurrently \"npm run server:dev\" \"npm run electron:dev\"",
+    "dev": "concurrently \"npm run server:dev\" \"npm run electron:dev\"",
     "server:dev": "cross-env NODE_ENV=development tsx watch src/server/index.ts",
-    "electron:dev": "concurrently \"npm run renderer:dev\" \"npm run main:watch\" \"wait-on http://localhost:3001 && wait-on http://localhost:5173 && wait-on dist/main/main.js && electron .\"",
+    "electron:dev": "concurrently \"npm run renderer:dev\" \"npm run main:watch\"",
+    "electron:start": "wait-on http://localhost:3001 && wait-on http://localhost:5173 && wait-on dist/main/main.js && electron . --remote-debugging-port=0",
     "renderer:dev": "vite",
-    "main:watch": "concurrently \"tsc -p tsconfig.main.json --watch\" \"tsc -p tsconfig.preload.json --watch\"",
+    "main:watch": "npm run build:main && concurrently \"tsc -p tsconfig.main.json --watch\" \"tsc -p tsconfig.preload.json --watch\"",
     "build": "npm run build:renderer && npm run build:main && npm run build:preload && npm run build:server",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json",
@@ -163,7 +164,10 @@
     "wait-on": "^8.0.3"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/vite": "^4.1.7",
+    "@tanstack/react-query": "^5.80.6",
+    "@tanstack/react-query-devtools": "^5.80.6",
     "axios": "^1.9.0",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
@@ -173,12 +177,17 @@
     "helmet": "^8.1.0",
     "isolated-vm": "^5.0.4",
     "lucide-react": "^0.511.0",
+    "monaco-editor": "^0.52.2",
     "mongodb-memory-server": "^10.1.4",
     "morgan": "^1.10.0",
     "mysql2": "^3.14.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.2",
+    "socket.io-client": "^4.8.1",
     "sqlite3": "^5.1.7",
-    "uuid": "^11.1.0"
+    "tailwind-scrollbar": "^4.0.2",
+    "uuid": "^11.1.0",
+    "zustand": "^5.0.5"
   }
 }
