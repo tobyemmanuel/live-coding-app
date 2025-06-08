@@ -2,14 +2,12 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import electron from 'vite-plugin-electron'
 import { resolve } from 'path'
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from 'tailwindcss'
+import autoprefixer from 'autoprefixer'
 
 export default defineConfig({
   plugins: [
     react(),
-    tailwindcss({
-      config: resolve(__dirname, 'tailwind.config.js'), // Explicitly specify config path
-    }),
     electron([
       {
         entry: resolve(import.meta.dirname, 'src/main/main.ts'),
@@ -27,6 +25,14 @@ export default defineConfig({
       },
     ]),
   ],
+  css: {
+    postcss: {
+      plugins: [
+        tailwindcss({ config: resolve(import.meta.dirname, 'tailwind.config.js') }),
+        autoprefixer(),
+      ],
+    },
+  },
   root: 'src/renderer',
   base: './',
   build: {
@@ -35,7 +41,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // '@': resolve(__dirname, 'src/renderer/src'),
       '@': resolve(import.meta.dirname, 'src/renderer/src'),
     },
   },
