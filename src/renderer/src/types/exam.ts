@@ -20,6 +20,7 @@ export interface Exam {
     correctAnswer?: string | string[];
     maxScore: number;
     mediaUrl?: string;
+    files?: string [];
   }
   export interface ExamSubmission {
     examId: string;

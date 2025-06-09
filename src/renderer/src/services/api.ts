@@ -10,13 +10,11 @@ const api = axios.create({
 
 export const apiService = {
   async getSettings(): Promise<AppSettings> {
-    console.log(222)
     const response = await api.get<ApiResponse<AppSettings>>('/settings')
     return response.data.data
   },
 
   async updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
-    console.log(22333333)
 
     const response = await api.put<ApiResponse<AppSettings>>(
       '/settings',
@@ -26,7 +24,6 @@ export const apiService = {
   },
 
   async healthCheck(): Promise<boolean> {
-    console.log(455)
 
     try {
       await api.get('/health')

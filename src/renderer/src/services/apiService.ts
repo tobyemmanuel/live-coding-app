@@ -1,4 +1,3 @@
-// src/renderer/src/services/apiService.ts
 import type { AppSettings } from '@/types/settings';
 
 export const apiService = {
