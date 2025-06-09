@@ -47,28 +47,12 @@ const user = sequelize.define(
             allowNull: true,
         },
         role_id: {
-            type: DataTypes.CHAR(36).BINARY,
+            type: DataTypes.INTEGER,
             allowNull: false,
-            references: {
-                model: 'roles',
-                key: 'id'
-            },
-            onDelete: 'CASCADE',
-            onUpdate: 'CASCADE'
         },
         organisation_id: {
-            type: DataTypes.CHAR(36).BINARY,
+            type: DataTypes.UUID,
             allowNull: false,
-            references: {
-                model: 'organisations',
-                key: 'id'
-            },
-            onDelete: 'CASCADE',
-            onUpdate: 'CASCADE'
-        },
-        avatar: {
-            type: DataTypes.STRING,
-            allowNull: true,
         },
         isActive: {
             type: DataTypes.BOOLEAN,
@@ -125,12 +109,22 @@ const user = sequelize.define(
     }
 );
 
-// Instance methods
-// Instance methods
-user.prototype.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
 
+user.prototype.comparePassword = async function (candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+};
+user.belongsTo(orgainsation, {
+    foreignKey: 'organisation_id',
+    targetKey: 'id',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
+user.belongsTo(role, {
+    foreignKey: 'role_id',
+    targetKey: 'id',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+});
 // Filter sensitive data when converting to JSON
 user.prototype.toJSON = function () {
     const values = { ...this.get() };
