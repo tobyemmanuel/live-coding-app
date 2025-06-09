@@ -2,11 +2,13 @@ import React from 'react'
 
 interface InputProps {
   type?: string
-  value: string
+  value?: string
   onChange: (value: string) => void
   placeholder?: string
   className?: string
   disabled?: boolean
+  min?: string | number
+  max?: string | number
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -15,11 +17,15 @@ export const Input: React.FC<InputProps> = ({
   onChange,
   placeholder,
   className,
-  disabled
+  disabled,
+  min,
+  max
 }) => {
   return (
     <input
       type={type}
+      min={min}
+      max={max}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}

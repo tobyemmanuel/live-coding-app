@@ -1,81 +1,12 @@
-@import 'tailwindcss';
-
-:root {
-  --background-light: #f5f5f5;
-  --background-dark: #1e1e1e;
-  --background-secondary-light: #e0e0e0;
-  --background-secondary-dark: #2d2d2d;
-  --text-light: #1a1a1a;
-  --text-dark: #d4d4d4;
-  --text-muted-light: #6a737d;
-  --text-muted-dark: #5c6370;
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
-  --slate-700: #334155;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
-  --slate-950: #020617;
-  --blue-50: #eff6ff;
-  --blue-100: #dbeafe;
-  --blue-200: #bfdbfe;
-  --blue-400: #60a5fa;
-  --blue-500: #3b82f6;
-  --blue-600: #2563eb;
-  --blue-700: #1d4ed8;
-  --blue-900: #1e40af;
-  --green-50: #ecfdf5;
-  --green-100: #d1fae5;
-  --green-200: #a7f3d0;
-  --green-400: #4ade80;
-  --green-500: #22c55e;
-  --green-600: #16a34a;
-  --green-700: #15803d;
-  --green-900: #14532d;
-  --red-50: #fef2f2;
-  --red-100: #fee2e2;
-  --red-200: #fecaca;
-  --red-400: #f87171;
-  --red-500: #ef4444;
-  --red-600: #dc2626;
-  --red-700: #b91c1c;
-  --red-900: #991b1b;
-  --orange-50: #fff7ed;
-  --orange-100: #ffedd5;
-  --orange-200: #fed7aa;
-  --orange-400: #fb923c;
-  --orange-500: #f97316;
-  --orange-600: #ea580c;
-  --orange-700: #c2410c;
-  --orange-900: #9a3412;
-  --purple-400: #a855f7;
-  --purple-600: #9333ea;
-  --teal-400: #2dd4bf;
-  --teal-600: #0d9488;
-}
-
-[data-theme='dark'] {
-  --background-light: #1e1e1e;
-  --background-dark: #1e1e1e;
-  --background-secondary-light: #2d2d2d;
-  --background-secondary-dark: #2d2d2d;
-  --text-light: #d4d4d4;
-  --text-dark: #d4d4d4;
-  --text-muted-light: #5c6370;
-  --text-muted-dark: #5c6370;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   body {
     margin: 0;
-    font-family:
-      -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -91,258 +22,108 @@
 
 @layer components {
   .app-container {
-    @apply min-h-screen transition-colors duration-200;
-    background-color: var(--background-light);
+    @apply min-h-screen bg-background-light dark:bg-background-dark transition-colors duration-200;
   }
 
   .card {
-    @apply rounded-lg shadow-md border;
-    background-color: #fff;
-    border-color: var(--gray-200);
-  }
-
-  [data-theme='dark'] .card {
-    background-color: var(--slate-800);
-    border-color: var(--slate-700);
+    @apply bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700;
   }
 
   .btn-primary {
-    @apply font-medium py-2 px-4 rounded-md transition-colors duration-200;
-    background-color: var(--blue-600);
-    color: #fff;
-  }
-  .btn-primary:hover {
-    background-color: var(--blue-700);
-  }
-  [data-theme='dark'] .btn-primary {
-    background-color: var(--blue-500);
-  }
-  [data-theme='dark'] .btn-primary:hover {
-    background-color: var(--blue-600);
+    @apply bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
 
   .btn-secondary {
-    @apply font-medium py-2 px-4 rounded-md transition-colors duration-200;
-    @apply font-medium py-2 px-4 rounded-md transition-colors bg-gray-200 text-gray-700;
-  }
-  .btn-secondary:hover {
-    background-color: var(--gray-300);
-  }
-  [data-theme='dark'] .btn-secondary {
-    background-color: var(--slate-700);
-    color: var(--gray-200);
-  }
-  [data-theme='dark'] .btn-secondary:hover {
-    background-color: var(--slate-600);
+    @apply bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
 
   .btn-success {
-    @apply font-medium py-2 px-4 rounded-md transition-colors duration-200;
-    background-color: var(--green-600);
-    color: #fff;
-  }
-  .btn-success:hover {
-    background-color: var(--green-700);
-  }
-  [data-theme='dark'] .btn-success {
-    background-color: var(--green-500);
-  }
-  [data-theme='dark'] .btn-success:hover {
-    background-color: var(--green-600);
+    @apply bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
 
   .btn-error {
-    @apply font-medium py-2 px-4 rounded-md transition-colors duration-200;
-    background-color: var(--red-600);
-    color: #fff;
-  }
-  .btn-error:hover {
-    background-color: var(--red-700);
-  }
-  [data-theme='dark'] .btn-error {
-    background-color: var(--red-500);
-  }
-  [data-theme='dark'] .btn-error:hover {
-    background-color: var(--red-600);
+    @apply bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
 
   .editor-container {
-    @apply font-mono h-full rounded-md p-4;
-    background-color: var(--background-light);
-    color: var(--text-light);
+    @apply bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark font-mono h-full rounded-md p-4;
   }
 
   .code-keyword {
-    color: var(--blue-600);
+    @apply text-blue-600 dark:text-blue-400;
   }
-  [data-theme='dark'] .code-keyword {
-    color: var(--blue-200);
-  }
-
   .code-string {
-    color: var(--green-600);
+    @apply text-green-600 dark:text-green-400;
   }
-  [data-theme='dark'] .code-string {
-    color: var(--green-400);
-  }
-
   .code-comment {
-    color: var(--gray-500);
+    @apply text-slate-500 dark:text-slate-400 italic;
   }
-  [data-theme='dark'] .code-comment {
-    color: var(--gray-400);
-  }
-
   .code-function {
-    color: var(--purple-600);
+    @apply text-purple-600 dark:text-purple-400;
   }
-  [data-theme='dark'] .code-function {
-    color: var(--purple-400);
-  }
-
   .code-variable {
-    color: #000;
+    @apply text-slate-900 dark:text-slate-200;
   }
-
-  [data-theme='dark'] .code-text {
-    color: var(--gray-200);
-  }
-
   .code-number {
-    color: var(--teal-600);
-  }
-  [data-theme='dark'] .code-number {
-    color: var(--teal-400);
+    @apply text-teal-600 dark:text-teal-400;
   }
 
   .file-explorer {
-    @apply w-64 p-4;
-    background-color: var(--background-secondary-light);
-    color: var(--text-light);
-  }
-  [data-theme='dark'] .file-explorer {
-    background-color: var(--background-secondary-dark);
-    color: var(--text-dark);
+    @apply bg-background-secondary-light dark:bg-background-secondary-dark text-text-light dark:text-text-dark w-64 p-4;
   }
 
   .code-tab {
-    @apply px-4 py-2 rounded-t-md text-sm;
-    background-color: var(--gray-200);
-    color: var(--text-light);
-  }
-  [data-theme='dark'] .code-tab {
-    background-color: var(--slate-700);
-    color: var(--text-dark);
+    @apply bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-t-md text-sm text-text-light dark:text-text-dark;
   }
 
   .code-tab-active {
-    @apply font-medium;
-    background-color: #fff;
-  }
-  [data-theme='dark'] .code-tab-active {
-    background-color: var(--slate-600);
+    @apply bg-white dark:bg-slate-600 font-semibold shadow-sm;
   }
 
-  .heading-100 {
-    @apply text-3xl font-bold;
-    color: var(--text-light);
+  .heading-1 {
+    @apply text-3xl font-bold text-text-light dark:text-text-dark;
   }
-  [data-theme='dark'] .heading-100 {
-    color: var(--text-dark);
+  .heading-2 {
+    @apply text-2xl font-semibold text-text-light dark:text-text-dark;
   }
-  .heading-200 {
-    @apply text-2xl font-semibold;
-    color: var(--text-light);
-  }
-  [data-theme='dark'] .heading-200 {
-    color: var(--text-dark);
-  }
-  .heading-300 {
-    @apply text-xl font-medium;
-    color: var(--text-light);
-  }
-  [data-theme='dark'] .heading-300 {
-    color: var(--text-dark);
+  .heading-3 {
+    @apply text-xl font-medium text-text-light dark:text-text-dark;
   }
 
   .alert {
     @apply p-4 rounded-md border;
   }
   .alert-info {
-    @apply border-blue-200 text-blue-800;
-    background-color: var(--blue-50);
-  }
-  [data-theme='dark'] .alert-info {
-    @apply border-blue-700 text-blue-200;
-    background-color: rgba(var(--blue-900), 0.5);
+    @apply bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200;
   }
   .alert-success {
-    @apply border-green-200 text-green-800;
-    background-color: var(--green-50);
-  }
-  [data-theme='dark'] .alert-success {
-    @apply border-green-700 text-green-200;
-    background-color: rgba(var(--green-900), 0.5);
+    @apply bg-green-50 dark:bg-green-900/40 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200;
   }
   .alert-warning {
-    @apply border-orange-200 text-orange-800;
-    background-color: var(--orange-50);
-  }
-  [data-theme='dark'] .alert-warning {
-    @apply border-orange-700 text-orange-200;
-    background-color: rgba(var(--orange-900), 0.5);
+    @apply bg-orange-50 dark:bg-orange-900/40 border-orange-200 dark:border-orange-700 text-orange-800 dark:text-orange-200;
   }
   .alert-error {
-    @apply border-red-200 text-red-800;
-    background-color: var(--red-50);
-  }
-  [data-theme='dark'] .alert-error {
-    @apply border-red-700 text-red-200;
-    background-color: rgba(var(--red-900), 0.5);
+    @apply bg-red-50 dark:bg-red-900/40 border-red-200 dark:border-red-700 text-red-800 dark:text-red-200;
   }
 
   .tooltip {
-    @apply absolute z-10 px-2 py-1 text-sm rounded-md shadow-md;
-    background-color: var(--gray-800);
-    color: #fff;
-  }
-  [data-theme='dark'] .tooltip {
-    background-color: var(--slate-900);
-    color: var(--gray-200);
+    @apply absolute z-10 px-2 py-1 text-xs bg-slate-800 dark:bg-slate-900 text-white rounded-md shadow-lg;
   }
 
   .modal {
-    @apply fixed inset-0 flex items-center justify-center;
-    background-color: rgba(0, 0, 0, 0.5);
-  }
-  [data-theme='dark'] .modal {
-    background-color: rgba(0, 0, 0, 0.7);
+    @apply fixed inset-0 flex items-center justify-center bg-black/40 dark:bg-black/60;
   }
 
   .modal-content {
-    @apply rounded-lg shadow-lg p-6 max-w-lg w-full border;
-    background-color: #fff;
-    border-color: var(--gray-200);
-  }
-  [data-theme='dark'] .modal-content {
-    background-color: var(--slate-800);
-    border-color: var(--slate-700);
+    @apply bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 max-w-lg w-full border border-slate-200 dark:border-slate-700;
   }
 
   .modal-header {
-    @apply text-xl font-semibold mb-4;
-    color: var(--text-light);
-  }
-  [data-theme='dark'] .modal-header {
-    color: var(--text-dark);
+    @apply text-xl font-semibold text-text-light dark:text-text-dark mb-4;
   }
 
   .modal-body {
-    @apply mb-4;
-    color: var(--text-light);
-  }
-  [data-theme='dark'] .modal-body {
-    color: var(--text-dark);
+    @apply text-text-light dark:text-text-dark mb-4;
   }
 
   .modal-footer {
@@ -352,78 +133,36 @@
   .badge {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-full;
   }
+
   .badge-primary {
-    @apply text-blue-800;
-    background-color: var(--blue-100);
+    @apply bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200;
   }
-  [data-theme='dark'] .badge-primary {
-    @apply text-blue-200;
-    background-color: rgba(var(--blue-900), 0.5);
-  }
+
   .badge-success {
-    @apply text-green-800;
-    background-color: var(--green-100);
+    @apply bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200;
   }
-  [data-theme='dark'] .badge-success {
-    @apply text-green-200;
-    background-color: rgba(var(--green-900), 0.5);
-  }
+
   .badge-warning {
-    @apply text-orange-800;
-    background-color: var(--orange-100);
+    @apply bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200;
   }
-  [data-theme='dark'] .badge-warning {
-    @apply text-orange-200;
-    background-color: rgba(var(--orange-900), 0.5);
-  }
+
   .badge-error {
-    @apply text-red-800;
-    background-color: var(--red-100);
-  }
-  [data-theme='dark'] .badge-error {
-    @apply text-red-200;
-    background-color: rgba(var(--red-900), 0.5);
+    @apply bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200;
   }
 
   .text-primary {
-    color: var(--blue-600);
-  }
-  [data-theme='dark'] .text-primary {
-    color: var(--blue-400);
+    @apply text-blue-600 dark:text-blue-400;
   }
   .text-success {
-    color: var(--green-600);
-  }
-  [data-theme='dark'] .text-success {
-    color: var(--green-400);
+    @apply text-green-600 dark:text-green-400;
   }
   .text-warning {
-    color: var(--orange-600);
-  }
-  [data-theme='dark'] .text-warning {
-    color: var(--orange-400);
+    @apply text-orange-600 dark:text-orange-400;
   }
   .text-error {
-    color: var(--red-600);
-  }
-  [data-theme='dark'] .text-error {
-    color: var(--red-400);
+    @apply text-red-600 dark:text-red-400;
   }
   .text-muted {
-    color: var(--gray-500);
-  }
-  [data-theme='dark'] .text-muted {
-    color: var(--gray-400);
+    @apply text-slate-500 dark:text-slate-400;
   }
 }
-
-/* @layer utilities {
-  .scrollbar {
-    @apply scrollbar-thin;
-    scrollbar-color: var(--gray-300) var(--gray-100);
-  }
-
-  [data-theme='dark'] .scrollbar {
-    scrollbar-color: var(--slate-600) var(--slate-800);
-  }
-} */
