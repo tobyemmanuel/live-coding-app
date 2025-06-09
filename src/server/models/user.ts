@@ -47,12 +47,24 @@ const user = sequelize.define(
             allowNull: true,
         },
         role_id: {
-            type: DataTypes.STRING,
+            type: DataTypes.CHAR(36).BINARY,
             allowNull: false,
+            references: {
+                model: 'roles',
+                key: 'id'
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE'
         },
         organisation_id: {
-            type: DataTypes.STRING,
+            type: DataTypes.CHAR(36).BINARY,
             allowNull: false,
+            references: {
+                model: 'organisations',
+                key: 'id'
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE'
         },
         avatar: {
             type: DataTypes.STRING,
@@ -86,35 +98,38 @@ const user = sequelize.define(
     },
     {
         hooks: {
-          beforeCreate: async (user) => {
-            const u = user as any;
-            if (u.password) {
-              const salt = await bcrypt.genSalt(10);
-              u.password = await bcrypt.hash(u.password, salt);
-            }
-            if (u.pin) {
-              const salt = await bcrypt.genSalt(10);
-              u.pin = await bcrypt.hash(u.pin, salt);
-            }
-          },
-          beforeUpdate: async (user) => {
-            const u = user as any;
-            if (u.changed('password')) {
-              const salt = await bcrypt.genSalt(10);
-              u.password = await bcrypt.hash(u.password, salt);
-            }
-            if (u.changed('pin')) {
-              const salt = await bcrypt.genSalt(10);
-              u.pin = await bcrypt.hash(u.pin, salt);
-            }
-          },
+            beforeCreate: async (user) => {
+                const u = user as any;
+                if (u.password) {
+                    const salt = await bcrypt.genSalt(10);
+                    u.password = await bcrypt.hash(u.password, salt);
+                }
+                if (u.pin) {
+                    const salt = await bcrypt.genSalt(10);
+                    u.pin = await bcrypt.hash(u.pin, salt);
+                }
+            },
+            beforeUpdate: async (user) => {
+                const u = user as any;
+                if (u.changed('password')) {
+                    const salt = await bcrypt.genSalt(10);
+                    u.password = await bcrypt.hash(u.password, salt);
+                }
+                if (u.changed('pin')) {
+                    const salt = await bcrypt.genSalt(10);
+                    u.pin = await bcrypt.hash(u.pin, salt);
+                }
+            },
         },
         timestamps: true, // Manages createdAt and updatedAt automatically
     }
 );
 
 // Instance methods
-
+// Instance methods
+user.prototype.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 // Filter sensitive data when converting to JSON
 user.prototype.toJSON = function () {
@@ -124,17 +139,5 @@ user.prototype.toJSON = function () {
     delete values.resetPasswordExpires;
     return values;
 };
-user.belongsTo(orgainsation, {
-    foreignKey: 'organisation_id',
-    targetKey: 'id', // Match the reference_id field in Transactions
-    onDelete: 'CASCADE', // Cascade delete to clean up related records
-    onUpdate: 'CASCADE',
-});
-user.belongsTo(role, {
-    foreignKey: 'role_id',
-    targetKey: 'id', // Match the reference_id field in Transactions
-    onDelete: 'CASCADE', // Cascade delete to clean up related records
-    onUpdate: 'CASCADE',
-});
 
 export default user;

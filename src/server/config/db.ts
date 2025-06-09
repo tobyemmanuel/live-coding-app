@@ -4,13 +4,12 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME!,
-  process.env.DB_USER!,
-  process.env.DB_PASS!,
+  process.env.DB_NAME || '',
+  process.env.DB_USER || '',
+  process.env.DB_PASS || '',
   {
-    host: process.env.DB_HOST!,
-    dialect: (process.env.DB_DIALECT as any) || 'mysql',
-
+    host: process.env.DB_HOST || 'localhost',
+    dialect: (process.env.DB_DIALECT as any) || 'mysql', // Ideally cast to SequelizeDialect
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     pool: {
       max: 5,
@@ -24,15 +23,19 @@ const sequelize = new Sequelize(
 export const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('Database connection established successfully.');
+    console.log('✅ Database connection established successfully.');
 
-    // Sync database in development mode
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
-      console.log('Database synced successfully.');
+      console.log('✅ Database synced successfully.');
     }
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
+    // TS fix: assert 'error' is of type Error
+    if (error instanceof Error) {
+      console.error('❌ Unable to connect to the database:', error.message);
+    } else {
+      console.error('❌ An unknown error occurred while connecting to the database.');
+    }
     process.exit(1);
   }
 };

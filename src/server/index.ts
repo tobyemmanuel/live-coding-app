@@ -6,6 +6,9 @@ import compression from 'compression'
 import { config } from 'dotenv'
 import { settingsRouter } from './routes/settings'
 import { initDatabase } from './database/db'
+import { connectDB } from './config/db.ts';
+import  auth from './routes/auth-route.ts'
+
 
 config()
 
@@ -19,6 +22,7 @@ app.use(compression())
 app.use(morgan('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+
 
 // Initialize database
 initDatabase()
@@ -36,6 +40,7 @@ app.get('/api/health', (req, res) => {
   })
 })
 
+app.use('/api/auth', auth);
 // Error handling middleware
 app.use(
   (
@@ -60,8 +65,17 @@ app.use(/^\/.*/, (req, res) => {
     message: "Route not found",
   });
 });
-
+// Connect to the database
+connectDB()
+  .then(() => {
+    console.log('✅ Database connection established')
+  })
+  .catch((error) => {
+    console.error('❌ Database connection failed:', error)
+    process.exit(1)
+  });
 app.listen(PORT, () => {
+
   console.log(`🚀 API Server running on http://localhost:${PORT}`)
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
 })

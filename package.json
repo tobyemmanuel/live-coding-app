@@ -173,6 +173,7 @@
     "framer-motion": "^12.12.1",
     "helmet": "^8.1.0",
     "isolated-vm": "^5.0.4",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.511.0",
     "mongodb-memory-server": "^10.1.4",
     "morgan": "^1.10.0",

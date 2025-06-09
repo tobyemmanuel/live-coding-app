@@ -44,3 +44,4 @@ const question = sequelize.define('question', {
         defaultValue: DataTypes.NOW,
     },
 })
+export default question;
