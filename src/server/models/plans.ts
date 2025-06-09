@@ -3,8 +3,9 @@ import sequelize from "../config/db";
 
 const plans = sequelize.define('plans', {
     id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        autoIncrement: true,
         primaryKey: true,
     },
     name: {

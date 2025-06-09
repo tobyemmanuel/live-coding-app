@@ -2,8 +2,9 @@ import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.ts';
 import organisation from './organisation.ts';
 import role from './role.ts';
+import { stat } from 'fs';
 
-const exam = sequelize.define(
+const Exam = sequelize.define(
     'exam', {
     id: {
         type: DataTypes.UUID,
@@ -25,7 +26,13 @@ const exam = sequelize.define(
     duration: {
         type: DataTypes.STRING,
         allowNull: false
-    }, createdAt: {
+    },
+    status: {
+        type: DataTypes.ENUM('scheduled', 'in_progress', 'completed', 'draft'),
+        allowNull: false,
+        defaultValue: 'draft',
+    },
+    createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
     },
@@ -36,18 +43,18 @@ const exam = sequelize.define(
 }
 )
 
-exam.belongsTo(organisation, {
+Exam.belongsTo(organisation, {
     foreignKey: 'organisation_id',
     targetKey: 'id', // Match the reference_id field in Transactions
     onDelete: 'CASCADE', // Cascade delete to clean up related records
     onUpdate: 'CASCADE',
 })
 
-exam.belongsTo(role, {
+Exam.belongsTo(role, {
     foreignKey: 'instructor_id',
     targetKey: 'id',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
 
-export default exam;
+export default Exam;

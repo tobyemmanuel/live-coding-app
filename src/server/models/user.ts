@@ -47,13 +47,14 @@ const user = sequelize.define(
             allowNull: true,
         },
         role_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false,
         },
         organisation_id: {
             type: DataTypes.UUID,
             allowNull: false,
         },
+
         isActive: {
             type: DataTypes.BOOLEAN,
             defaultValue: true,
