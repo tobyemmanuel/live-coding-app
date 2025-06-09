@@ -3,7 +3,7 @@ import { join } from 'path'
 import { createSplashWindow } from './splash'
 import os from 'node:os'
 import fs from 'node:fs'
-import axios from 'axios'
+// import axios from 'axios'
 // import { executeCode } from './code-execution 
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -136,16 +136,16 @@ ipcMain.handle('write-file', async (event, filePath, data) => {
 ipcMain.handle('submit-answers', async (_event, { examId, answers }) => {
   // Send to backend
   return { status: 'success', message: 'Answers submitted successfully' } // Replace with actual result later
-  try {
-    const response = await axios.post(
-      'http://backend/api/submit',
-      { examId, answers },
-      { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-    )
-    return response.data
-  } catch (error) {
-    throw new Error('Submission failed')
-  }
+  // try {
+  //   const response = await axios.post(
+  //     'http://backend/api/submit',
+  //     { examId, answers },
+  //     { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+  //   )
+  //   return response.data
+  // } catch (error) {
+  //   throw new Error('Submission failed')
+  // }
 })
 
 ipcMain.handle('exit-exam', async () => {
