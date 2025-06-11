@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import csvParser from 'csv-parser';
 import Exam from '../models/exam';
+import user from '../models/user'
 import StudentGroup from '../models/student_group';
 import student_group_member from '../models/student_group_members';
 import ExamCredentials from '../models/exam_credentials';
@@ -67,11 +68,34 @@ class ExamController {
   }
 
   // ✅ GET ALL Exams
-  static async index(req: Request, res: Response) {
+  static async index(req: Request, res: Response) { 
+    const { user_id } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
     try {
-      const exams = await Exam.findAll();
+      // Fetch user and get organisation_id
+      const foundUser = await user.findOne({ where: { id: user_id } });
+
+      if (!foundUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+
+      const organisation_id = foundUser.organisation_id;
+
+      // Fetch exams for the user's organization
+      const exams = await Exam.findAll({ where: { organisation_id } });
+
+      if (!exams || exams.length === 0) {
+        return res.status(404).json({ success: false, message: "No exams found for this organization" });
+      }
+
       return res.status(200).json({ success: true, exams });
+
     } catch (err) {
+      console.error('Error fetching exams:', err);
       return res.status(500).json({ success: false, message: 'Failed to fetch exams' });
     }
   }
@@ -87,7 +111,7 @@ class ExamController {
     }
   }
 
-  // ✅ UPDATE Exam
+  // ✅ UPDATE Exam 
   static async update(req: Request, res: Response) {
     try {
       const { id } = req.params;

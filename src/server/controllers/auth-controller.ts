@@ -1,60 +1,56 @@
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 import { Op } from 'sequelize';
 import user from '../models/user';
 import role from '../models/role';
 import organisation from '../models/organisation';
-
-// Helper: Generate JWT token
-const generateToken = (id: string): string => {
-    if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRATION) {
-        throw new Error("Missing environment variables");
-    }
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRATION,
-    });
-};
-
+import { createUser } from '../utilis/userService';
 class AuthController {
-    async register(req: Request, res: Response, next: NextFunction) {
+    static async register(req: Request, res: Response, next: NextFunction) {
         const { fullname, email, password, role_id, organisation_id, phone_number } = req.body;
 
-        const existing = await user.findOne({ where: { email } });
-        if (existing) {
-            return res.status(400).json({ status: 'failed', message: "Email has already been used" });
+        if (!fullname || !email || !password || !organisation_id) {
+            return res.status(400).json({ status: 'error', message: 'Please provide all required fields' });
         }
 
-        const roles = await role.findOne({ where: { id: role_id } });
-        if (!roles) {
-            return res.status(400).json({ status: 'failed', message: "Invalid role" });
-        }
-
-        const organisations = await organisation.findOne({ where: { id: organisation_id } });
-        if (!organisations) {
-            return res.status(400).json({ status: 'failed', message: "Invalid organisation" });
-        }
         try {
+            const existing = await user.findOne({ where: { email } });
+            if (existing) {
+                return res.status(400).json({ status: 'failed', message: 'Email has already been used' });
+            }
 
+            const org = await organisation.findOne({ where: { id: organisation_id } });
+            if (!org) {
+                return res.status(400).json({ status: 'failed', message: 'Invalid organisation' });
+            }
 
-            const newUser = await user.create({ fullname, email, password, role_id, organisation_id, phone_number });
+            // const hashedPassword = await bcrypt.hash(password, 10);
 
-            const token = generateToken(newUser.id);
-            const { password: _, ...safeUser } = newUser.toJSON();
+            const userData = {
+                fullname,
+                email,
+                password: password,
+                role_id: role_id || '1',
+                organisation_id,
+                phone_number,
+            };
 
-            return res.status(201).json({
-                status: 'success',
-                data: {
-                    user: { email: safeUser.email, fullname: safeUser.fullname },
-                    token,
-                },
-            });
+            const response = await createUser(userData);
+            return res.status(201).json(response);
+        } catch (error) {
+            next(error);
+        }
+    }
+    static async getRoles(req: Request, res: Response, next: NextFunction) {
+        try {
+            const roles = await role.findAll();
+            return res.status(200).json({ status: 'success', data: roles });
         } catch (error) {
             next(error);
         }
     }
 
-    async login(req: Request, res: Response, next: NextFunction) {
+    static async login(req: Request, res: Response, next: NextFunction) {
         const { email, password } = req.body;
 
         if (!email || !password) {

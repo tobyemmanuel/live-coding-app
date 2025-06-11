@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.ts';
 import organisation from './organisation.ts';
-import role from './role.ts';
+import user from './user.ts';
 import { stat } from 'fs';
 
 const Exam = sequelize.define(
@@ -16,11 +16,11 @@ const Exam = sequelize.define(
         allowNull: false,
     },
     instructor_id: {
-        type: DataTypes.STRING,
+        type: DataTypes.UUID,
         allowNull: false
     },
     organisation_id: {
-        type: DataTypes.STRING,
+        type: DataTypes.UUID,
         allowNull: false,
     },
     duration: {
@@ -50,7 +50,7 @@ Exam.belongsTo(organisation, {
     onUpdate: 'CASCADE',
 })
 
-Exam.belongsTo(role, {
+Exam.belongsTo(user, {
     foreignKey: 'instructor_id',
     targetKey: 'id',
     onDelete: 'CASCADE',

@@ -23,11 +23,11 @@ const sequelize = new Sequelize(
 export const connectDB = async () => {
   try {
     await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
+    // console.log('✅ Database connection established successfully.');
 
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
-      console.log('✅ Database synced successfully.');
+      // console.log('✅ Database synced successfully.');
     }
   } catch (error) {
     // TS fix: assert 'error' is of type Error

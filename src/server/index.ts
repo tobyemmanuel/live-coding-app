@@ -7,7 +7,8 @@ import { config } from 'dotenv'
 import { settingsRouter } from './routes/settings'
 import { initDatabase } from './database/db'
 import { connectDB } from './config/db.ts';
-import  auth from './routes/auth-route.ts'
+import auth from './routes/auth-route.ts'
+import exam from './routes/exam-route';
 
 
 config()
@@ -40,7 +41,8 @@ app.get('/api/health', (req, res) => {
   })
 })
 
-app.use('/api/auth', auth);
+app.use('', auth);
+app.use('', exam);
 // Error handling middleware
 app.use(
   (
