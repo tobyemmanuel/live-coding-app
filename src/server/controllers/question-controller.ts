@@ -115,4 +115,4 @@ class QuestionController {
 
 }
 
-export default QuestionController; 
+export default new QuestionController(); 

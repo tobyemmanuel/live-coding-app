@@ -9,6 +9,9 @@ import { initDatabase } from './database/db'
 import { connectDB } from './config/db.ts';
 import auth from './routes/auth-route.ts'
 import exam from './routes/exam-route';
+import organisation from './routes/organisation-route.ts';
+import question from './routes/question-route.ts';
+
 
 
 config()
@@ -41,9 +44,11 @@ app.get('/api/health', (req, res) => {
   })
 })
 
-app.use('', auth);
-app.use('', exam);
-// Error handling middleware
+app.use('api', auth);
+app.use('api', exam);
+app.use('api', organisation);
+app.use('api', question);
+// Error handling middleware   
 app.use(
   (
     err: Error,

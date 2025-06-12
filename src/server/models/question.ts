@@ -30,7 +30,7 @@ const question = sequelize.define('question', {
     allowNull: false,
   },
   options: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
+    type: DataTypes.JSON,
     allowNull: true,
   },
   answer: {
@@ -54,7 +54,7 @@ const question = sequelize.define('question', {
     allowNull: true,
   },
   files: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
+    type: DataTypes.JSON,
     allowNull: true,
   },
   createdAt: {

@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+
 import { Request, Response, NextFunction } from 'express';
 import { Op } from 'sequelize';
 import user from '../models/user';
@@ -6,7 +6,7 @@ import role from '../models/role';
 import organisation from '../models/organisation';
 import { createUser } from '../utilis/userService';
 class AuthController {
-    static async register(req: Request, res: Response, next: NextFunction) {
+     async register(req: Request, res: Response, next: NextFunction) {
         const { fullname, email, password, role_id, organisation_id, phone_number } = req.body;
 
         if (!fullname || !email || !password || !organisation_id) {
@@ -41,7 +41,7 @@ class AuthController {
             next(error);
         }
     }
-    static async getRoles(req: Request, res: Response, next: NextFunction) {
+     async getRoles(req: Request, res: Response, next: NextFunction) {
         try {
             const roles = await role.findAll();
             return res.status(200).json({ status: 'success', data: roles });
@@ -50,7 +50,7 @@ class AuthController {
         }
     }
 
-    static async login(req: Request, res: Response, next: NextFunction) {
+     async login(req: Request, res: Response, next: NextFunction) {
         const { email, password } = req.body;
 
         if (!email || !password) {

@@ -23,10 +23,5 @@ exam.delete('/exams/:id', ExamController.destroy);
 // VALIDATE Exam Access
 exam.post('/exams/validate-access', ExamController.validateExamAccess);
 
-// IMPORT Students (CSV or JSON array)
-// exam.post('/exams/import-students', upload.single('file'), (req, res) => {
-//   const examController = new ExamController(); // Since importStudents is not static
-//   examController.importStudents(req, res);
-// });
 
 export default exam;

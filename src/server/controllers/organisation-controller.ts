@@ -6,7 +6,7 @@ import { createUser } from '../utilis/userService';
 import role from '../models/role';
 
 class OrganisationController {
-    static async createOrganisation(req: Request, res: Response, next: NextFunction) {
+    async createOrganisation(req: Request, res: Response, next: NextFunction) {
         const { name, email, description, phone_number, website_url, admin_password } = req.body;
 
         if (!name || !email || !description || !phone_number || !website_url || !admin_password) {
@@ -53,7 +53,7 @@ class OrganisationController {
             next(error);
         }
     }
-    static async updateOrganisation(req: Request, res: Response, next: NextFunction) {
+    async updateOrganisation(req: Request, res: Response, next: NextFunction) {
         const { id } = req.params;
         const { name, email, description, phone_number, website_url } = req.body;
 
@@ -81,7 +81,7 @@ class OrganisationController {
             next(error);
         }
     }
-    static async getUsersByOrganisation(req: Request, res: Response, next: NextFunction) {
+    async getUsersByOrganisation(req: Request, res: Response, next: NextFunction) {
         const { organisationId } = req.params;
         // Validate organisationId
         if (!organisationId) {
@@ -99,8 +99,8 @@ class OrganisationController {
             next(error);
         }
     }
-    static async getAllInstructors(req: Request, res: Response, next: NextFunction) {
-        
+    async getAllInstructors(req: Request, res: Response, next: NextFunction) {
+
         try {
             const instructors = await User.findAll({ where: { role: 'instructor' } });
 
@@ -116,4 +116,5 @@ class OrganisationController {
 
 }
 
-export default OrganisationController;
+
+export default new OrganisationController();
