@@ -44,10 +44,10 @@ app.get('/api/health', (req, res) => {
   })
 })
 
-app.use('api', auth);
-app.use('api', exam);
-app.use('api', organisation);
-app.use('api', question);
+app.use('/api', auth);
+app.use('/api', exam);
+app.use('/api', organisation);
+app.use('/api', question);
 // Error handling middleware   
 app.use(
   (

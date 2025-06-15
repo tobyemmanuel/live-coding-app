@@ -99,10 +99,50 @@ class OrganisationController {
             next(error);
         }
     }
-    async getAllInstructors(req: Request, res: Response, next: NextFunction) {
 
+    async createInstructor(req: Request, res: Response, next: NextFunction) {
+        const { fullname, email, password, organisation_id, phone_number } = req.body;
+        if (!fullname || !email || !password || !organisation_id || !phone_number) {
+            return res.status(400).json({ status: 'error', message: 'All fields are required' });
+        }
+
+        // try {
+        //     // Check if user already exists
+        //     const existingUser = await User.findOne({ where: { email, organisation_id } });
+        //     if (existingUser) {
+        //         return res.status(400).json({ status: 'error', message: 'User with this email already exists in this organisation' });
+        //     }
+
+        //     // Create instructor
+        //     const role_id = await role.findOne({ where: { name: 'instructor' } });
+        //     if (!role_id) {
+        //         return res.status(400).json({ status: 'error', message: 'Instructor role not found' });
+        //     }
+        //     const newInstructor = await createUser({
+        //         fullname,
+        //         email,
+        //         password: password,
+        //         role_id: role_id?.id, // predefined role
+        //         organisation_id,
+        //         phone_number,
+        //     });
+
+        //     return res.status(201).json({
+        //         status: 'success',
+        //         message: 'Instructor created successfully',
+        //         data: newInstructor,
+        //     });
+        // } catch (error) {
+        //     next(error);
+        // }
+    }
+    async getAllInstructors(req: Request, res: Response, next: NextFunction) {
+        const { organisation_id } = req.body;
+        if (!organisation_id) {
+            return res.status(400).json({ status: 'error', message: 'Organisation ID is required' });
+        }
         try {
-            const instructors = await User.findAll({ where: { role: 'instructor' } });
+            const instructors = await User.findAll({ where: { role: 'instructor', organisation: organisation_id } });
 
             return res.status(200).json({
                 status: 'success',

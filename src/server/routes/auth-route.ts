@@ -6,6 +6,7 @@ auth.post('/register', authController.register)
 auth.post('/login', authController.login)
 auth.post('/logout', authController.logout)
 auth.post('/forgot-password', authController.forgotPassword)
+auth.post('/reset-password', authController.resetPassword)
 export default auth
 
 

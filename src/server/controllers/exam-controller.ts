@@ -5,9 +5,9 @@ import csvParser from 'csv-parser';
 import Exam from '../models/exam';
 import user from '../models/user'
 import StudentGroup from '../models/student_group';
-import student_group_member from '../models/student_group_members';
 import ExamCredentials from '../models/exam_credentials';
 import question_category from '../models/question-category';
+import exam_credentials from '../models/exam_credentials';
 
 // Mock sendEmail function
 const sendEmail = (email: string, studentCode: string, examTitle: string) => {
@@ -152,60 +152,7 @@ class ExamController {
 
     // You can track login session here
     res.json({ message: 'Access granted', exam, student });
-  };
-
-  async importStudents(req: Request, res: Response) {
-    try {
-      // If file is uploaded (CSV)
-      if (req.file?.path) {
-        const file = req.file.path;
-        const results: any[] = [];
-
-        fs.createReadStream(file)
-          .pipe(csvParser())
-          .on('data', (row) => {
-            results.push(row);
-          })
-          .on('end', async () => {
-            await this.saveStudentsToDB(results, res);
-          });
-      }
-
-      // If normal JSON array is provided in req.body
-      else if (Array.isArray(req.body.students)) {
-        const students = req.body.students;
-        await this.saveStudentsToDB(students, res);
-      }
-
-      // Invalid input
-      else {
-        return res.status(400).json({
-          message: 'Invalid input. Provide either a CSV file or a students array.',
-        });
-      }
-    } catch (error) {
-      console.error('Import Error:', error);
-      res.status(500).json({ message: 'Failed to import students.', error });
-    }
-  };
-
-  // ✅ Common save logic (used by both array and CSV input)
-  async saveStudentsToDB(students: any[], res: Response) {
-    for (const student of students) {
-      const { email, name, group } = student;
-
-      const studentCode = uuidv4().split('-')[0]; // Generate unique student code
-      await student_group_member.upsert({
-        email,
-        name,
-        group,
-        student_code: studentCode,
-      });
-      // Optionally send email or push notification
-    }
-
-    return res.status(200).json({ message: 'Students imported successfully.' });
-  };
+  }; 
 }
 
 export default ExamController;

@@ -25,6 +25,15 @@ const exam_credentials = sequelize.define('exam_credentials', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  user_id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id',
+    }
+
+  },
   matric_number: {
     type: DataTypes.STRING,
     allowNull: true, // Used only if premium

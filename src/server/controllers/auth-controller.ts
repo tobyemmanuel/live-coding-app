@@ -4,9 +4,10 @@ import { Op } from 'sequelize';
 import user from '../models/user';
 import role from '../models/role';
 import organisation from '../models/organisation';
-import { createUser } from '../utilis/userService';
+import bcrypt from "bcryptjs";
+import { createUser, generateToken } from '../utilis/userService';
 class AuthController {
-     async register(req: Request, res: Response, next: NextFunction) {
+    async register(req: Request, res: Response, next: NextFunction) {
         const { fullname, email, password, role_id, organisation_id, phone_number } = req.body;
 
         if (!fullname || !email || !password || !organisation_id) {
@@ -41,16 +42,8 @@ class AuthController {
             next(error);
         }
     }
-     async getRoles(req: Request, res: Response, next: NextFunction) {
-        try {
-            const roles = await role.findAll();
-            return res.status(200).json({ status: 'success', data: roles });
-        } catch (error) {
-            next(error);
-        }
-    }
-
-     async login(req: Request, res: Response, next: NextFunction) {
+   
+    async login(req: Request, res: Response, next: NextFunction) {
         const { email, password } = req.body;
 
         if (!email || !password) {
@@ -116,7 +109,7 @@ class AuthController {
         const { token } = req.params;
         const { password } = req.body;
         try {
-            const resetPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
+            const resetPasswordToken = bcrypt.createHash('sha256').update(token).digest('hex');
             const resetUser = await user.findOne({
                 where: {
                     resetPasswordToken,

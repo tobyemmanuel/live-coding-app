@@ -2,7 +2,7 @@ import user from '../models/user';
 import jwt from 'jsonwebtoken';
 
 
-const generateToken = (id: string): string => {
+export const generateToken = (id: string): string => {
     if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRATION) {
         throw new Error("Missing environment variables");
     }

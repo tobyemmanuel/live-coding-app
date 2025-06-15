@@ -10,7 +10,7 @@ organisation.put('/organisation/update/:id', OrganisationController.updateOrgani
 // GET All Organisations
 organisation.get('/organisation/users', OrganisationController.getUsersByOrganisation);
 // GET All Instructors
-organisation.get('/organisation/instructors', OrganisationController.getAllInstructors);
+organisation.get('/organisation/instructors', OrganisationController.getAllInstructors); 
 // // DELETE Organisation
 // organisation.delete('/organisation/delete/:id', OrganisationController.deleteOrganisation);
 export default organisation;
