@@ -17,14 +17,14 @@ const question = sequelize.define('question', {
       key: 'id',
     },
   },
-  question_category_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: question_category,
-      key: 'id',
-    },
-  },
+  // question_category_id: {
+  //   type: DataTypes.INTEGER,
+  //   allowNull: false,
+  //   references: {
+  //     model: question_category,
+  //     key: 'id',
+  //   },
+  // },
   content: {
     type: DataTypes.STRING,
     allowNull: false,
