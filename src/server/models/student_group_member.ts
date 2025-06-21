@@ -1,34 +1,35 @@
+// models/student_group_members.ts
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/db.ts';
-import organisation from './organisation.ts';
-import user from './user.ts'; 
+import student_group from './student_group.ts';
+import user from './user.ts';
 
-
-const  student_group = sequelize.define('student_group', {
+const student_group_members = sequelize.define('student_group_members', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  name: {
+  group_id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: student_group,
+      key: 'id',
+    },
+  },
+  user_id: {
+    type: DataTypes.UUID,
+    allowNull: false,
+    references: {
+      model: user,
+      key: 'id',
+    },
+  },
+  email: {
     type: DataTypes.STRING,
     allowNull: false,
-  },
-  instructor_id: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: user, // Assuming you have a 'users' table for instructors
-      key: 'id',
-    },
-  },
-  organisation_id: {
-    type: DataTypes.UUID,
-    allowNull: false,
-    references: {
-      model: organisation,
-      key: 'id',
-    },
-  },
+  }
 });
-export default student_group;
+
+export default student_group_members;

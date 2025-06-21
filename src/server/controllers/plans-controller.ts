@@ -1,5 +1,5 @@
 import {Response,Request,NextFunction} from "express";
-import plan from "../models/plan";
+import plan from "../models/plan.ts";
 
 class PlansController {
     async getPlans(req: Request, res: Response, next: NextFunction) {

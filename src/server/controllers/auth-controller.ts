@@ -37,7 +37,10 @@ class AuthController {
             };
 
             const response = await createUser(userData);
-            return res.status(201).json(response);
+            if (response.status == "success") {
+                 return res.status(201).json(response);
+            }
+            return response;
         } catch (error) {
             next(error);
         }

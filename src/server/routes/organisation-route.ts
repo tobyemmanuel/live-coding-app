@@ -1,17 +1,13 @@
-import { Router } from "express";
-import OrganisationController from "../controllers/organisation-controller";
+import express from 'express';
+import OrganisationController from '../controllers/organisation-controller';
 
-const organisation = Router();
+const organisation = express.Router();
+organisation.post('/organisations', OrganisationController.createOrganisation);
+organisation.put('/organisations', OrganisationController.updateOrganisation);
 
-// CREATE Organisation
-organisation.post('/organisation/create', OrganisationController.createOrganisation);
-// UPDATE Organisation
-organisation.put('/organisation/update/:id', OrganisationController.updateOrganisation);
-// GET All Organisations
-organisation.get('/organisation/users', OrganisationController.getUsersByOrganisation);
-// GET All Instructors
-organisation.get('/organisation/instructors', OrganisationController.getAllInstructors); 
-// // DELETE Organisation
-// organisation.delete('/organisation/delete/:id', OrganisationController.deleteOrganisation);
+organisation.get('/organisations/users', OrganisationController.getUsersByOrganisation);
+organisation.get('/organisations/instructors', OrganisationController.getAllInstructors);
+
+organisation.post('/organisations/instructors', OrganisationController.createInstructor);
+
 export default organisation;
- 

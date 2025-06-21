@@ -4,6 +4,7 @@ import User from '../models/user';
 import bcrypt from 'bcryptjs';
 import { createUser } from '../utilis/userService';
 import role from '../models/role';
+import organisation from '../models/organisation';
 
 class OrganisationController {
     async createOrganisation(req: Request, res: Response, next: NextFunction) {
@@ -54,14 +55,21 @@ class OrganisationController {
         }
     }
     async updateOrganisation(req: Request, res: Response, next: NextFunction) {
-        const { id } = req.params;
-        const { name, email, description, phone_number, website_url } = req.body;
 
+        // const { name , email, description, phone_number, website_url } = req.body;
+        const { id, name, email, description, phone_number, website_url } = req.body;
+
+        // const { id } = req.params;
+        // if(!id){
+        //     return res.status(400).json({status:'error', message:'id needed'})
+        // }
+        // console.log(id);
+        const org = await Organisation.findByPk(id);
+        if (!org) {
+            return res.status(404).json({ status: 'error', message: 'Organisation not found' });
+        }
         try {
-            const org = await Organisation.findByPk(id);
-            if (!org) {
-                return res.status(404).json({ status: 'error', message: 'Organisation not found' });
-            }
+
 
             // Update fields
             org.name = name || org.name;
@@ -82,14 +90,19 @@ class OrganisationController {
         }
     }
     async getUsersByOrganisation(req: Request, res: Response, next: NextFunction) {
-        const { organisationId } = req.params;
+        const { organisation_id } = req.body;
+        console.log(organisation_id);
         // Validate organisationId
-        if (!organisationId) {
+        if (!organisation_id) {
             return res.status(400).json({ status: 'error', message: 'Organisation ID is required' });
         }
         try {
-            const users = await User.findAll({ where: { organisation_id: organisationId } });
 
+            const users = await User.findAll({ where: { organisation_id } });
+
+            if (!users) {
+                return res.status(200).json({ status: 'success', message: 'users not found' })
+            }
             return res.status(200).json({
                 status: 'success',
                 message: 'Users fetched successfully',
@@ -99,42 +112,43 @@ class OrganisationController {
             next(error);
         }
     }
-
     async createInstructor(req: Request, res: Response, next: NextFunction) {
         const { fullname, email, password, organisation_id, phone_number } = req.body;
         if (!fullname || !email || !password || !organisation_id || !phone_number) {
             return res.status(400).json({ status: 'error', message: 'All fields are required' });
         }
 
-        // try {
-        //     // Check if user already exists
-        //     const existingUser = await User.findOne({ where: { email, organisation_id } });
-        //     if (existingUser) {
-        //         return res.status(400).json({ status: 'error', message: 'User with this email already exists in this organisation' });
-        //     }
+        try {
+            const existing = await user.findOne({ where: { email } });
+            if (existing) {
+                return res.status(400).json({ status: 'failed', message: 'Email has already been used' });
+            }
 
-        //     // Create instructor
-        //     const role_id = await role.findOne({ where: { name: 'instructor' } });
-        //     if (!role_id) {
-        //         return res.status(400).json({ status: 'error', message: 'Instructor role not found' });
-        //     }
-        //     const newInstructor = await createUser({
-        //         fullname,
-        //         email,
-        //         password: password,
-        //         role_id: role_id?.id, // predefined role
-        //         organisation_id,
-        //         phone_number,
-        //     });
+            const roleExists = await role.findOne({ where: { name: 'instructor' } });
+            if (!roleExists) {
+                return res.status(400).json({ status: 'failed', message: 'Invalid role' });
+            }
+            const role_id = roleExists.id;
 
-        //     return res.status(201).json({
-        //         status: 'success',
-        //         message: 'Instructor created successfully',
-        //         data: newInstructor,
-        //     });
-        // } catch (error) {
-        //     next(error);
-        // }
+            const org = await organisation.findOne({ where: { id: organisation_id } });
+            if (!org) {
+                return res.status(400).json({ status: 'failed', message: 'Invalid organisation' });
+            }
+
+            const userData = {
+                fullname,
+                email,
+                password,
+                role_id: role_id || '2', // Default to instructor role
+                organisation_id,
+                phone_number,
+            };
+
+            const response = await createUser(userData);
+            return res.status(201).json(response);
+        } catch (error) {
+            next(error);
+        }
     }
     async getAllInstructors(req: Request, res: Response, next: NextFunction) {
         const { organisation_id } = req.body;
@@ -142,8 +156,14 @@ class OrganisationController {
             return res.status(400).json({ status: 'error', message: 'Organisation ID is required' });
         }
         try {
-            const instructors = await User.findAll({ where: { role: 'instructor', organisation: organisation_id } });
-
+            const roles = await role.findOne({ where: { name: 'instructor' } })
+            const instructors = await User.findAll({ where: { role_id: roles.id, organisation_id: organisation_id } });
+            if (instructors.length === 0) {
+                return res.status(200).json({
+                    status: "successfull",
+                    message: "No Instructor found"
+                })
+            }
             return res.status(200).json({
                 status: 'success',
                 message: 'Instructors fetched successfully',
@@ -153,7 +173,6 @@ class OrganisationController {
             next(error);
         }
     }
-
 }
 
 

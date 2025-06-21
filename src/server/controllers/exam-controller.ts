@@ -1,32 +1,45 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
-import csvParser from 'csv-parser';
 import Exam from '../models/exam';
-import user from '../models/user'
-import StudentGroup from '../models/student_group';
+import user from '../models/user';
+import organisation from '../models/organisation';
+import Question from '../models/question';
 import ExamCredentials from '../models/exam_credentials';
-import question_category from '../models/question-category';
-import exam_credentials from '../models/exam_credentials';
+import student_group_members from "../models/student_group_member";
+import { sendEmail } from '../utilis/email';
 
-// Mock sendEmail function
-const sendEmail = (email: string, studentCode: string, examTitle: string) => {
-  console.log(`Email sent to ${email}: Your studentCode for ${examTitle} is ${studentCode}`);
-};
 
 class ExamController {
   // ✅ CREATE Exam
   static async create(req: Request, res: Response) {
+    const {
+      title,
+      instructor_id,
+      organisation_id,
+      duration,
+      status = 'draft',
+    } = req.body;
+    if (!title || !instructor_id || !organisation_id || !duration) {
+      return res.status(400).json({
+        status: "error",
+        message: "input neccsary fields please"
+      })
+    }
+    const Check_inst = await user.findOne({ where: { id: instructor_id } })
+    const Check_org = await organisation.findOne({ where: { id: organisation_id } })
+    if (!Check_inst) {
+      return res.status(400).json({
+        status: "error",
+        message: "instructor not found"
+      })
+
+    } if (!Check_org) {
+      return res.status(400).json({
+        status: "error",
+        message: "orgainsation  not found"
+      })
+    }
     try {
-      const {
-        title,
-        instructor_id,
-        organisation_id,
-        duration,
-        status = 'draft',
-        group_id,
-        emails = [],
-      } = req.body;
 
       const newExam = await Exam.create({
         title,
@@ -36,30 +49,6 @@ class ExamController {
         status,
       });
 
-      let studentEmails: string[] = [];
-
-      // Fetch from group if group_id provided
-      if (group_id) {
-        const groupMembers = await StudentGroupMember.findAll({ where: { group_id } });
-        studentEmails = groupMembers.map((member: any) => member.email);
-      }
-
-      // Merge manual emails
-      if (emails.length > 0) {
-        studentEmails = [...new Set([...studentEmails, ...emails])]; // remove duplicates
-      }
-
-      // Generate StudentCode and send email
-      for (const email of studentEmails) {
-        const studentCode = `EX-${newExam.id.slice(0, 4)}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-        await ExamCredentials.create({
-          exam_id: newExam.id,
-          student_code: studentCode,
-          user_email: email,
-        });
-        sendEmail(email, studentCode, title);
-      }
-
       return res.status(201).json({ success: true, exam: newExam });
     } catch (err) {
       console.error(err);
@@ -67,8 +56,79 @@ class ExamController {
     }
   }
 
+  // ✅ Schedule the exam
+  static async schedule(req: Request, res: Response) {
+    const { exam_id, group_id } = req.body;
+
+    if (!exam_id || !group_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'exam_id and group_id are required',
+      });
+    }
+
+    try {
+      const exam = await Exam.findByPk(exam_id);
+      if (!exam) {
+        return res.status(404).json({ success: false, message: 'Exam not found' });
+      }
+
+      // Update status to 'scheduled'
+      await exam.update({ status: 'scheduled' });
+
+      // Fetch group members
+      const members = await student_group_members.findAll({
+        where: { group_id },
+        attributes: ['user_id', 'email'],
+      });
+
+      const studentData = members.map((m: any) => ({
+        user_id: m.user_id,
+        email: m.email,
+      }));
+
+      const studentEmails = studentData.map((s) => s.email);
+
+      // Deduplicate by email
+      const uniqueStudents = new Map();
+
+      for (const student of studentData) {
+        if (!uniqueStudents.has(student.email)) {
+          uniqueStudents.set(student.email, student);
+        }
+      }
+
+      const allStudents = Array.from(uniqueStudents.values());
+
+
+
+      // Generate credentials
+      const credentialsData = allStudents.map((student) => {
+        const studentCode = `EX-${exam.id.slice(0, 4)}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+        return {
+          id: uuidv4(),
+          exam_id: exam.id,
+          user_email: student.email,
+          student_code: studentCode,
+          user_id: student.user_id || null,
+        };
+      });
+
+      await ExamCredentials.bulkCreate(credentialsData);
+
+      for (const cred of credentialsData) {
+        await sendEmail(cred.user_email, cred.student_code, exam.title);
+      }
+
+      return res.status(200).json({ success: true, message: 'Exam scheduled and credentials sent.' });
+    } catch (error: any) {
+      console.error(error);
+      return res.status(500).json({ success: false, message: 'Failed to schedule exam', error: error.message });
+    }
+  }
+
   // ✅ GET ALL Exams
-  static async index(req: Request, res: Response) { 
+  static async index(req: Request, res: Response) {
     const { user_id } = req.body;
 
     if (!user_id) {
@@ -102,8 +162,15 @@ class ExamController {
 
   // ✅ GET SINGLE Exam
   static async show(req: Request, res: Response) {
+    const id = req.params.id;
+    if (!id) {
+      return res.status(400).json({
+        status: "error",
+        message: "exam id is needed"
+      })
+    }
     try {
-      const exam = await Exam.findByPk(req.params.id);
+      const exam = await Exam.findByPk(id);
       if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
       return res.status(200).json({ success: true, exam });
     } catch (err) {
@@ -139,20 +206,85 @@ class ExamController {
     }
   }
 
-  // ✅ VALIDATE Exam Access
+
   static async validateExamAccess(req: Request, res: Response) {
-    const { exam_id, student_code } = req.body;
+    try {
+      const { exam_id, student_code } = req.body;
 
-    const student = await StudentGroup.findOne({ where: { student_code } });
-    if (!student) return res.status(401).json({ message: 'Invalid student code' });
+      // Validate input
+      if (!exam_id || !student_code) {
+        return res.status(400).json({
+          success: false,
+          message: 'exam_id and student_code are required',
+        });
+      }
 
-    // Optionally verify if student is authorized for that exam
-    const exam = await Exam.findByPk(exam_id);
-    if (!exam) return res.status(404).json({ message: 'Exam not found' });
+      // Check student credentials
+      const credential = await ExamCredentials.findOne({
+        where: { exam_id, student_code },
+      });
 
-    // You can track login session here
-    res.json({ message: 'Access granted', exam, student });
-  }; 
+      if (!credential) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or unauthorized student code for this exam',
+        });
+      }
+
+      // Fetch and validate exam
+      const exam = await Exam.findByPk(exam_id);
+      if (!exam) {
+        return res.status(404).json({
+          success: false,
+          message: 'Exam not found',
+        });
+      }
+
+      if (exam.status !== 'scheduled') {
+        return res.status(403).json({
+          success: false,
+          message: 'Exam has not been scheduled yet',
+        });
+      }
+
+      // ✅ Fetch questions for the exam
+      const questions = await Question.findAll({
+        where: { exam_id },
+        order: [['createdAt', 'ASC']], // Optional: sort questions
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: 'Access granted',
+        exam: {
+          id: exam.id,
+          title: exam.title,
+          duration: exam.duration,
+        },
+        student: {
+          email: credential.user_email,
+          user_id: credential.user_id,
+          student_code: credential.student_code,
+        },
+        questions: questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          options: q.options, // Adjust depending on your structure
+          type: q.type,
+          marks: q.marks,
+        })),
+      });
+
+    } catch (error: any) {
+      console.error('Access validation error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error.message,
+      });
+    }
+  }
+
 }
 
 export default ExamController;

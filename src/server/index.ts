@@ -11,7 +11,7 @@ import auth from './routes/auth-route.ts'
 import exam from './routes/exam-route';
 import organisation from './routes/organisation-route.ts';
 import question from './routes/question-route.ts';
-
+import group from './routes/grouping-route.ts'
 
 
 config()
@@ -30,7 +30,6 @@ app.use(express.urlencoded({ extended: true }))
 
 // Initialize database
 initDatabase()
-
 // Routes
 app.use('/api/settings', settingsRouter)
 
@@ -48,6 +47,7 @@ app.use('/api', auth);
 app.use('/api', exam);
 app.use('/api', organisation);
 app.use('/api', question);
+app.use('/api', group)
 // Error handling middleware   
 app.use(
   (
@@ -84,6 +84,7 @@ connectDB()
 app.listen(PORT, () => {
 
   console.log(`🚀 API Server running on http://localhost:${PORT}`)
+  console.log(`Swagger documentation available at http://localhost:${PORT}/api-docs`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
 })
 
