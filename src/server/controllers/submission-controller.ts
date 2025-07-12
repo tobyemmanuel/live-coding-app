@@ -1,46 +1,74 @@
 import { Request, Response } from 'express';
-import Submission from '../models/submission';
+import ExamSubmission from '../models/exam_submissions';
 import Exam from '../models/exam';
 import question from '../models/question';
-import { autoGradeCode } from '../utilis/auto-grade';
 
 class submissionController {
 
 
-    async submitAnswer(req, res)  {
-        const { exam_id, question_id, student_code, answer, code } = req.body;
+    async submitExam(req: Request, res: Response) {
+        const { exam_id, user_email, answers } = req.body;
 
-        if (!exam_id || !question_id || !student_code || !answer || !code) {
-            return res.status(400).json({ message: 'All fields are required' });
+        if (!exam_id || !user_email || !answers || typeof answers !== 'object') {
+            return res.status(400).json({ message: 'exam_id, user_email, and answers are required.' });
         }
 
-        const questions = await question.findByPk(question_id);
-        if (!questions) return res.status(404).json({ message: 'Invalid question' });
+        try {
+            // 1. Check if exam exists
+            const exam = await Exam.findByPk(exam_id);
+            if (!exam) {
+                return res.status(404).json({ message: 'Exam not found.' });
+            }
 
-        let score = 0;
-        let test_results = [];
+            // 2. Get all questions for this exam
+            const questions = await question.findAll({
+                where: { exam_id },
+                attributes: ['id', 'type', 'answer', 'max_score'],
+            });
 
-        // if (questions.type === 'coding') {
-        //     // const tests = JSON.parse(questions.tests || '[]');
-        //     // const grading = autoGradeCode(code, tests);
-        //     // score = grading.score;
-        //     // test_results = grading.results;
-        // }
+            // 3. Calculate total score
+            let totalScore = 0;
 
-        const [submission, created] = await Submission.upsert({
-            exam_id,
-            question_id,
-            student_code,
-            answer,
-            code,
-            test_results,
-            score
-        }, { returning: true });
+            for (const question of questions) {
+                const submittedAnswer = answers[question.id];
 
-        res.json({
-            message: created ? 'Submission created' : 'Submission updated',
-            data: submission
-        });
+                if (
+                    question.type === 'objective' &&
+                    submittedAnswer?.toString().toLowerCase().trim() ===
+                    question.answer.toString().toLowerCase().trim()
+                ) {
+                    totalScore += question.max_score;
+                }
+            }
+
+            // 4. Check if already submitted
+            const existing = await ExamSubmission.findOne({
+                where: { exam_id, user_email },
+            });
+ 
+            // 5. Save or update submission
+            const submission = await ExamSubmission.upsert({
+                id: existing?.id || uuidv4(),
+                exam_id,
+                user_email,
+                user_id: existing?.user_id || null,
+                answers, // raw answers object (JSON)
+                score: totalScore,
+                submitted: true,
+                submitted_at: new Date(),
+            });
+
+            return res.status(200).json({
+                message: 'Exam submitted successfully.',
+                score: totalScore,
+            });
+        } catch (error: any) {
+            console.error('Exam submission error:', error);
+            return res.status(500).json({
+                message: 'Failed to submit exam.',
+                error: error.message,
+            });
+        }
     };
 
     async getStudentSubmissions(req: Request, res: Response) {
