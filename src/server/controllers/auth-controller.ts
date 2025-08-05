@@ -10,10 +10,6 @@ class AuthController {
     async register(req: Request, res: Response, next: NextFunction) {
         const { fullname, email, password, role_id, organisation_id, phone_number } = req.body;
 
-        if (!fullname || !email || !password || !organisation_id) {
-            return res.status(400).json({ status: 'error', message: 'Please provide all required fields' });
-        }
-
         try {
             const existing = await user.findOne({ where: { email } });
             if (existing) {
@@ -25,46 +21,46 @@ class AuthController {
                 return res.status(400).json({ status: 'failed', message: 'Invalid organisation' });
             }
 
-            // const hashedPassword = await bcrypt.hash(password, 10);
+            let finalRoleId = role_id;
+            if (!role_id) {
+                const defaultRole = await role.findOne({ where: { name: 'student' } });
+                if (!defaultRole) {
+                    return res.status(400).json({ status: 'failed', message: 'Default role not found' });
+                }
+                finalRoleId = defaultRole.id;
+            }
 
             const userData = {
                 fullname,
                 email,
-                password: password,
-                role_id: role_id || '1',
+                password,
+                role_id: finalRoleId,
                 organisation_id,
                 phone_number,
             };
 
             const response = await createUser(userData);
-            if (response.status == "success") {
-                 return res.status(201).json(response);
+            if (response.status === "success") {
+                return res.status(201).json(response);
             }
-            return response;
+
+            return res.status(500).json({ status: 'error', message: 'Failed to register user' });
+
         } catch (error) {
-            next(error);
+            return next(error);
         }
     }
-   
+
     async login(req: Request, res: Response, next: NextFunction) {
         const { email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({ status: 'error', message: 'Please provide email and password' });
-        }
-
         const existingUser = await user.findOne({ where: { email } });
         if (!existingUser || !(await existingUser.comparePassword(password))) {
             return res.status(401).json({ status: 'error', message: 'Incorrect email or password' });
         }
         try {
-
-
             existingUser.lastLogin = new Date();
             await existingUser.save();
-
             const token = generateToken(existingUser.id);
-
             return res.status(200).json({
                 status: 'success',
                 data: {
@@ -80,27 +76,21 @@ class AuthController {
     async forgotPassword(req: Request, res: Response, next: NextFunction) {
         const { email } = req.body;
         const c_user = await user.findOne({ where: { email } });
-
         if (!c_user) {
             return res.status(404).json({ status: 'error', message: 'No user found with that email' });
         }
         try {
-
-
             const resetToken = crypto.randomBytes(32).toString('hex');
             c_user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
             c_user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
-
             await c_user.save();
-
             try {
                 await sendResetPasswordEmail(c_user.email, resetToken);
-                res.json({ status: 'success', message: 'Reset token sent to email' });
+                return res.json({ status: 'success', message: 'Reset token sent to email' });
             } catch (emailError) {
                 c_user.resetPasswordToken = null;
                 c_user.resetPasswordExpires = null;
                 await c_user.save();
-
                 return res.status(500).json({ status: 'error', message: 'Error sending email. Please try again later.' });
             }
         } catch (error) {
@@ -119,19 +109,15 @@ class AuthController {
                     resetPasswordExpires: { [Op.gt]: Date.now() }
                 }
             });
-
             if (!resetUser) {
                 return res.status(400).json({ status: 'error', message: 'Token is invalid or has expired' });
             }
-
             resetUser.password = password;
             resetUser.resetPasswordToken = null;
             resetUser.resetPasswordExpires = null;
             await resetUser.save();
-
             const newToken = generateToken(resetUser.id);
-
-            res.json({
+            return res.json({
                 status: 'success',
                 data: {
                     user: resetUser.email,
@@ -147,16 +133,13 @@ class AuthController {
         const { currentPassword, newPassword } = req.body;
         const userId = req.user?.id;
         const currentUser = await user.findByPk(userId);
-
         if (!currentUser || !(await currentUser.comparePassword(currentPassword))) {
-            return res.status(401).json({ status: 'error', message: 'Current password is incorrect' });
+           return res.status(401).json({ status: 'error', message: 'Current password is incorrect' });
         }
         try {
-
             currentUser.password = newPassword;
             await currentUser.save();
-
-            res.json({ status: 'success', message: 'Password updated successfully' });
+          return res.json({ status: 'success', message: 'Password updated successfully' });
         } catch (error) {
             next(error);
         }
@@ -165,16 +148,16 @@ class AuthController {
     async logout(req: Request, res: Response) {
         const token = req.headers.authorization?.split(" ")[1];
         if (!token) {
-            return res.status(400).json({ status: "error", message: "Token not provided" });
+          return  res.status(400).json({ status: "error", message: "Token not provided" });
         }
         try {
             let decoded: any;
             try {
                 decoded = jwt.verify(token, process.env.JWT_SECRET!);
             } catch (error) {
-                return res.status(401).json({ status: "error", message: "Invalid or expired token" });
+              return  res.status(401).json({ status: "error", message: "Invalid or expired token" });
             }
-            return res.status(200).json({
+          return  res.status(200).json({
                 status: "success",
                 message: "User successfully logged out",
                 userId: decoded.id,

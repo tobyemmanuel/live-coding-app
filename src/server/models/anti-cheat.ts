@@ -25,6 +25,11 @@ const anti_cheat = sequelize.define('anti_cheat', {
             key: 'id',
         },
     },
+    description:{
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: '',
+    },
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,

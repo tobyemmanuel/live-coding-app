@@ -71,16 +71,13 @@ class PermissionController {
                 }
                 return mod;
             });
-
             if (!moduleFound) {
                 // Optionally: Add new module if not found
                 access.push([module_id, can_create || "0", can_read || "0", can_update || "0", can_delete || "0"]);
             }
-
             // Save updated array
             record.access = JSON.stringify(access);
             await record.save();
-
             return res.status(200).json({ status: 'success', data: record });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: 'Failed to update permission', error: error.message });
@@ -90,4 +87,3 @@ class PermissionController {
 }
 
 export default new PermissionController();
-export const permissionControllerInstance = new PermissionController();

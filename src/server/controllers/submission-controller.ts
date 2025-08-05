@@ -2,12 +2,18 @@ import { Request, Response } from 'express';
 import ExamSubmission from '../models/exam_submissions';
 import Exam from '../models/exam';
 import question from '../models/question';
+import user from '../models/user';
 
 class submissionController {
 
 
     async submitExam(req: Request, res: Response) {
         const { exam_id, user_email, answers } = req.body;
+
+        const user_emails = await user.findByPk(req.user.id);
+        if (!user_email) {
+            return res.status(400).json({ message: 'User email is required.' });
+        }
 
         if (!exam_id || !user_email || !answers || typeof answers !== 'object') {
             return res.status(400).json({ message: 'exam_id, user_email, and answers are required.' });

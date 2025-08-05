@@ -47,7 +47,7 @@ const user = sequelize.define(
             allowNull: true,
         },
         role_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: false,
         },
         organisation_id: {

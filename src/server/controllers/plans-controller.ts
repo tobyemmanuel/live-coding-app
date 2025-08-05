@@ -13,11 +13,9 @@ class PlansController {
 
     async createPlan(req: Request, res: Response, next: NextFunction) {
         const { name, description, price } = req.body;
-
         if (!name || !description || !price) {
             return res.status(400).json({ status: 'error', message: 'Name, description and price are required' });
         }
-
         try {
             const newPlan = await plan.create({ name, description, price });
             return res.status(201).json({ status: 'success', data: newPlan });
@@ -29,22 +27,18 @@ class PlansController {
     async updatePlan(req: Request, res: Response, next: NextFunction) {
         const { id } = req.params;
         const { name, description, price } = req.body;
-
         if (!name || !description || !price) {
             return res.status(400).json({ status: 'error', message: 'Name, description and price are required' });
         }
-
         try {
             const planToUpdate = await plan.findByPk(id);
             if (!planToUpdate) {
                 return res.status(404).json({ status: 'error', message: 'Plan not found' });
             }
-
             planToUpdate.name = name;
             planToUpdate.description = description;
             planToUpdate.price = price;
             await planToUpdate.save();
-
             return res.status(200).json({ status: 'success', data: planToUpdate });
         } catch (error) {
             return res.status(500).json({ status: 'error', message: 'Failed to update plan', error: error.message });
@@ -53,13 +47,11 @@ class PlansController {
 
     async deletePlan(req: Request, res: Response, next: NextFunction) {
         const { id } = req.params;
-
         try {
             const planToDelete = await plan.findByPk(id);
             if (!planToDelete) {
                 return res.status(404).json({ status: 'error', message: 'Plan not found' });
             }
-
             await planToDelete.destroy();
             return res.status(200).json({ status: 'success', message: 'Plan deleted successfully' });
         } catch (error) {
@@ -67,5 +59,4 @@ class PlansController {
         }
     }
 }
-
 export default new PlansController();

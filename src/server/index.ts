@@ -11,9 +11,11 @@ import auth from './routes/auth-route.ts'
 import exam from './routes/exam-route';
 import organisation from './routes/organisation-route.ts';
 import question from './routes/question-route.ts';
-import group from './routes/grouping-route.ts'
+import group from './routes/grouping-route.ts';
+import role from './routes/role-route.ts';
+import { createRoles } from './utilis/makeRole.ts'
 
-
+ 
 config()
 
 const app = express()
@@ -48,6 +50,7 @@ app.use('/api', exam);
 app.use('/api', organisation);
 app.use('/api', question);
 app.use('/api', group)
+app.use ('/api',role)
 // Error handling middleware   
 app.use(
   (
@@ -72,15 +75,18 @@ app.use(/^\/.*/, (req, res) => {
     message: "Route not found",
   });
 });
+
 // Connect to the database
 connectDB()
   .then(() => {
     console.log('✅ Database connection established')
+    createRoles()
   })
   .catch((error) => {
     console.error('❌ Database connection failed:', error)
     process.exit(1)
   });
+
 app.listen(PORT, () => {
 
   console.log(`🚀 API Server running on http://localhost:${PORT}`)

@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import Organisation from '../models/organisation';
-import User from '../models/user';
+import user from '../models/user';
 import bcrypt from 'bcryptjs';
 import { createUser } from '../utilis/userService';
 import role from '../models/role';
 import organisation from '../models/organisation';
+
 
 class OrganisationController {
     async createOrganisation(req: Request, res: Response, next: NextFunction) {
@@ -30,7 +31,7 @@ class OrganisationController {
                 website_url,
             });
 
-            const role_id = await role.findOne({ where: { name: 'super_admin' } });
+            const role_id = await role.findOne({ where: { name: '   admin' } });
 
             // Create super admin user for this organisation
             const hashedPassword = await bcrypt.hash(admin_password, 10);
@@ -55,29 +56,17 @@ class OrganisationController {
         }
     }
     async updateOrganisation(req: Request, res: Response, next: NextFunction) {
-
-        // const { name , email, description, phone_number, website_url } = req.body;
-        const { id, name, email, description, phone_number, website_url } = req.body;
-
-        // const { id } = req.params;
-        // if(!id){
-        //     return res.status(400).json({status:'error', message:'id needed'})
-        // }
-        // console.log(id);
+        const { id, name, email, description, phone_number, website_url } = req.body;    
         const org = await Organisation.findByPk(id);
         if (!org) {
             return res.status(404).json({ status: 'error', message: 'Organisation not found' });
         }
         try {
-
-
-            // Update fields
             org.name = name || org.name;
             org.email = email || org.email;
             org.description = description || org.description;
             org.phone_number = phone_number || org.phone_number;
             org.website_url = website_url || org.website_url;
-
             await org.save();
             // Returning the updated organisation
             return res.status(200).json({
@@ -97,9 +86,7 @@ class OrganisationController {
             return res.status(400).json({ status: 'error', message: 'Organisation ID is required' });
         }
         try {
-
             const users = await User.findAll({ where: { organisation_id } });
-
             if (!users) {
                 return res.status(200).json({ status: 'success', message: 'users not found' })
             }
@@ -117,24 +104,20 @@ class OrganisationController {
         if (!fullname || !email || !password || !organisation_id || !phone_number) {
             return res.status(400).json({ status: 'error', message: 'All fields are required' });
         }
-
         try {
             const existing = await user.findOne({ where: { email } });
             if (existing) {
                 return res.status(400).json({ status: 'failed', message: 'Email has already been used' });
             }
-
-            const roleExists = await role.findOne({ where: { name: 'instructor' } });
+           const roleExists = await role.findOne({ where: { name: 'instructor' } });
             if (!roleExists) {
                 return res.status(400).json({ status: 'failed', message: 'Invalid role' });
             }
             const role_id = roleExists.id;
-
             const org = await organisation.findOne({ where: { id: organisation_id } });
             if (!org) {
                 return res.status(400).json({ status: 'failed', message: 'Invalid organisation' });
             }
-
             const userData = {
                 fullname,
                 email,
@@ -143,7 +126,6 @@ class OrganisationController {
                 organisation_id,
                 phone_number,
             };
-
             const response = await createUser(userData);
             return res.status(201).json(response);
         } catch (error) {

@@ -19,22 +19,17 @@ class ExamController {
       duration,
       status = 'draft',
     } = req.body;
-    if (!title || !instructor_id || !organisation_id || !duration) {
-      return res.status(400).json({
-        status: "error",
-        message: "input neccsary fields please"
-      })
-    }
+
     const Check_inst = await user.findOne({ where: { id: instructor_id } })
     const Check_org = await organisation.findOne({ where: { id: organisation_id } })
     if (!Check_inst) {
-      return res.status(400).json({
+      res.status(400).json({
         status: "error",
         message: "instructor not found"
       })
 
     } if (!Check_org) {
-      return res.status(400).json({
+      res.status(400).json({
         status: "error",
         message: "orgainsation  not found"
       })
@@ -49,33 +44,23 @@ class ExamController {
         status,
       });
 
-      return res.status(201).json({ success: true, exam: newExam });
+      res.status(201).json({ success: true, exam: newExam });
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ success: false, message: 'Failed to create exam' });
+      res.status(500).json({ success: false, message: 'Failed to create exam' });
     }
   }
 
   // ✅ Schedule the exam
   static async schedule(req: Request, res: Response) {
     const { exam_id, group_id } = req.body;
-
-    if (!exam_id || !group_id) {
-      return res.status(400).json({
-        success: false,
-        message: 'exam_id and group_id are required',
-      });
-    }
-
     try {
       const exam = await Exam.findByPk(exam_id);
       if (!exam) {
-        return res.status(404).json({ success: false, message: 'Exam not found' });
+        res.status(404).json({ success: false, message: 'Exam not found' });
       }
-
       // Update status to 'scheduled'
       await exam.update({ status: 'scheduled' });
-
       // Fetch group members
       const members = await student_group_members.findAll({
         where: { group_id },
@@ -120,27 +105,22 @@ class ExamController {
         await sendEmail(cred.user_email, cred.student_code, exam.title);
       }
 
-      return res.status(200).json({ success: true, message: 'Exam scheduled and credentials sent.' });
+      res.status(200).json({ success: true, message: 'Exam scheduled and credentials sent.' });
     } catch (error: any) {
       console.error(error);
-      return res.status(500).json({ success: false, message: 'Failed to schedule exam', error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to schedule exam', error: error.message });
     }
   }
 
   // ✅ GET ALL Exams
   static async index(req: Request, res: Response) {
-    const { user_id } = req.body;
-
-    if (!user_id) {
-      return res.status(400).json({ success: false, message: "User ID is required" });
-    }
-
+    const { user_id } = req.user.id;
     try {
       // Fetch user and get organisation_id
       const foundUser = await user.findOne({ where: { id: user_id } });
 
       if (!foundUser) {
-        return res.status(404).json({ success: false, message: "User not found" });
+        res.status(404).json({ success: false, message: "User not found" });
       }
 
       const organisation_id = foundUser.organisation_id;
@@ -149,32 +129,26 @@ class ExamController {
       const exams = await Exam.findAll({ where: { organisation_id } });
 
       if (!exams || exams.length === 0) {
-        return res.status(404).json({ success: false, message: "No exams found for this organization" });
+        res.status(404).json({ success: false, message: "No exams found for this organization" });
       }
 
-      return res.status(200).json({ success: true, exams });
+      res.status(200).json({ success: true, exams });
 
     } catch (err) {
       console.error('Error fetching exams:', err);
-      return res.status(500).json({ success: false, message: 'Failed to fetch exams' });
+      res.status(500).json({ success: false, message: 'Failed to fetch exams' });
     }
   }
 
   // ✅ GET SINGLE Exam
   static async show(req: Request, res: Response) {
     const id = req.params.id;
-    if (!id) {
-      return res.status(400).json({
-        status: "error",
-        message: "exam id is needed"
-      })
-    }
     try {
       const exam = await Exam.findByPk(id);
-      if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
-      return res.status(200).json({ success: true, exam });
+      if (!exam) res.status(404).json({ success: false, message: 'Exam not found' });
+      res.status(200).json({ success: true, exam });
     } catch (err) {
-      return res.status(500).json({ success: false, message: 'Failed to get exam' });
+      res.status(500).json({ success: false, message: 'Failed to get exam' });
     }
   }
 
@@ -183,12 +157,12 @@ class ExamController {
     try {
       const { id } = req.params;
       const exam = await Exam.findByPk(id);
-      if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
+      if (!exam) res.status(404).json({ success: false, message: 'Exam not found' });
 
       await exam.update(req.body);
-      return res.status(200).json({ success: true, exam });
+      res.status(200).json({ success: true, exam });
     } catch (err) {
-      return res.status(500).json({ success: false, message: 'Failed to update exam' });
+      res.status(500).json({ success: false, message: 'Failed to update exam' });
     }
   }
 
@@ -197,12 +171,12 @@ class ExamController {
     try {
       const { id } = req.params;
       const exam = await Exam.findByPk(id);
-      if (!exam) return res.status(404).json({ success: false, message: 'Exam not found' });
+      if (!exam) res.status(404).json({ success: false, message: 'Exam not found' });
 
       await exam.destroy();
-      return res.status(200).json({ success: true, message: 'Exam deleted' });
+      res.status(200).json({ success: true, message: 'Exam deleted' });
     } catch (err) {
-      return res.status(500).json({ success: false, message: 'Failed to delete exam' });
+      res.status(500).json({ success: false, message: 'Failed to delete exam' });
     }
   }
 
@@ -210,22 +184,13 @@ class ExamController {
   static async validateExamAccess(req: Request, res: Response) {
     try {
       const { exam_id, student_code } = req.body;
-
-      // Validate input
-      if (!exam_id || !student_code) {
-        return res.status(400).json({
-          success: false,
-          message: 'exam_id and student_code are required',
-        });
-      }
-
       // Check student credentials
       const credential = await ExamCredentials.findOne({
         where: { exam_id, student_code },
       });
 
       if (!credential) {
-        return res.status(401).json({
+        res.status(401).json({
           success: false,
           message: 'Invalid or unauthorized student code for this exam',
         });
@@ -234,14 +199,14 @@ class ExamController {
       // Fetch and validate exam
       const exam = await Exam.findByPk(exam_id);
       if (!exam) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: 'Exam not found',
         });
       }
 
       if (exam.status !== 'scheduled') {
-        return res.status(403).json({
+        res.status(403).json({
           success: false,
           message: 'Exam has not been scheduled yet',
         });
@@ -253,7 +218,7 @@ class ExamController {
         order: [['createdAt', 'ASC']], // Optional: sort questions
       });
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
         message: 'Access granted',
         exam: {
@@ -266,7 +231,7 @@ class ExamController {
           user_id: credential.user_id,
           student_code: credential.student_code,
         },
-        questions: questions.map(q => ({
+        questions: questions.random.map(q => ({
           id: q.id,
           text: q.text,
           options: q.options, // Adjust depending on your structure
@@ -277,7 +242,7 @@ class ExamController {
 
     } catch (error: any) {
       console.error('Access validation error:', error);
-      return res.status(500).json({
+      res.status(500).json({
         success: false,
         message: 'Internal server error',
         error: error.message,

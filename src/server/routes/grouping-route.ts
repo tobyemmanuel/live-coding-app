@@ -1,23 +1,20 @@
 import { Router } from 'express';
 import Student_Controller from '../controllers/grouping-controler';
-// import multer from 'multer';
+import { validated } from '../middleware/ValidationMiddleware';
+import { createGroupValidation, importStudentsValidation, updateStudentValidation } from '../Validations/studentValidation';
+import { authorize, protectUser } from '../middleware/authMiddleware';
 
-// const upload = multer({ dest: 'uploads/' });
 const group = Router();
 
-// Create group
-group.post('/group/create', Student_Controller.creategroup);
 
-// Add users via JSON array
-group.post('/group/add-users', async (req, res) => {
+group.post('/group/create', createGroupValidation, protectUser, Student_Controller.creategroup);
+
+
+group.post('/group/add-users', importStudentsValidation, protectUser, async (req, res) => {
   await Student_Controller.addUsers(req.body.Users, res);
 });
 
-// Import users from CSV
-// group.post('/group/import', upload.single('file'), Student_Controller.importStudents);
-
-// Update a group member
-group.put('/group/update/:id', Student_Controller.updateStudent);
+group.put('/group/update/:id', updateStudentValidation, protectUser,Student_Controller.updateStudent);
 group.get('/group/fetch', Student_Controller.FetchGroup);
 
 export default group;

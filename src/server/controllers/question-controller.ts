@@ -6,14 +6,13 @@ import question_category from '../models/question-category';
 class QuestionController {
     async createQuestion(req: Request, res: Response) {
         const questions: any[] = req.body.questions;
+        const examId = req.body.examId;
 
         if (!Array.isArray(questions) || questions.length === 0) {
             return res.status(400).json({ message: 'Questions array is required.' });
         }
-
-        // Validate required fields for each question
         for (const [index, q] of questions.entries()) {
-            const requiredFields = ['exam_id', 'type', 'max_score', 'content'];
+            const requiredFields = ['type', 'max_score', 'content'];
             const missingFields = requiredFields.filter(field => !q[field]);
             if (missingFields.length > 0) {
                 return res.status(400).json({
@@ -21,18 +20,12 @@ class QuestionController {
                 });
             }
         }
-        // Check if exam exists once
-        const examId = questions[0].exam_id;
-        const exam = await Exam.findByPk(examId);
+       const exam = await Exam.findByPk(examId);
         if (!exam) return res.status(404).json({ message: 'Exam not found.' });
         try {
-
-
-
-
             // Prepare the question payloads
             const questionData = questions.map(q => ({
-                exam_id: q.exam_id,
+                exam_id: examId,
                 type: q.type,
                 max_score: q.max_score,
                 mediaUrl: q.mediaUrl,

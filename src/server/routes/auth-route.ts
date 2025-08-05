@@ -1,63 +1,20 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
 import authController from '../controllers/auth-controller';
+import { validated } from '../middleware/ValidationMiddleware';
+import { registerValidation, loginValidation, forgotPasswordValidation, resetPasswordValidation, changePasswordValidation } from '../Validations/authValidation';
 
 const auth = Router();
 
-const registerValidation = [
-  body('username')
-    .trim()
-    .isLength({ min: 3, max: 30 })
-    .withMessage('Username must be between 3 and 30 characters'),
-  body('email')
-    .isEmail()
-    .withMessage('Please provide a valid email'),
-  body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
-  body('role')
-    .optional()
-    .isIn(['user', 'admin', 'moderator'])
-    .withMessage('Invalid role specified'),
-  body('organisation')
-    .isLength({ min: 4, max: 4 })
-    .withMessage('Pin must be exactly 4 characters long'),
-];
 
 
-const loginValidation = [
-  body('email')
-    .isEmail()
-    .withMessage('Please provide a valid email'),
-  body('password')
-    .notEmpty()
-    .withMessage('Password is required')
-];
+auth.post('/register', registerValidation, validated, authController.register);
 
-const passwordValidation = [
-  body('password')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
-];
+auth.post('/login', loginValidation, validated, authController.login);
+auth.post('/forgot-password', forgotPasswordValidation, validated, authController.forgotPassword);
 
-const changePasswordValidation = [
-  body('newPassword')
-    .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long'),
-  body('currentPassword')
-    .notEmpty()
-    .withMessage('Please enter your current password'),
-];
+auth.post('/reset-password/:token', resetPasswordValidation, validated, authController.resetPassword);
 
-
-auth.post('/register', registerValidation,authController.register);
-
-auth.post('/login', authController.login);
-auth.post('/forgot-password', authController.forgotPassword);
-
-auth.post('/reset-password/:token', authController.resetPassword);
-
-auth.post('/change-password', authController.changePassword);
+auth.post('/change-password', changePasswordValidation, validated, authController.changePassword);
 auth.post('/logout', authController.logout);
 
 export default auth;

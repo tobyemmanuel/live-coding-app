@@ -11,11 +11,6 @@ class Student_Controller {
 
   async creategroup(req: Request, res: Response) {
     const { name, instructor_id, organisation_id } = req.body;
-
-    if (!name || !instructor_id || !organisation_id) {
-      return res.status(400).json({ status: 'error', message: 'Please provide all required fields' });
-    }
-
     try {
       const group = await student_group.create({
         name,
@@ -23,15 +18,15 @@ class Student_Controller {
         organisation_id
       });
 
-      return res.status(201).json({ status: 'success', data: group });
+       res.status(201).json({ status: 'success', data: group });
     } catch (error: any) {
-      return res.status(500).json({ status: 'error', message: 'Failed to create group', error: error.message });
+       res.status(500).json({ status: 'error', message: 'Failed to create group', error: error.message });
     }
   }
 
   async addUsers(users: any[], res: Response) {
     if (!Array.isArray(users) || users.length === 0) {
-      return res.status(400).json({ status: 'error', message: 'Please provide an array of users' });
+       res.status(400).json({ status: 'error', message: 'Please provide an array of users' });
     }
 
     try {
@@ -40,7 +35,7 @@ class Student_Controller {
 
       const group = await student_group.findByPk(group_id);
       if (!group) {
-        return res.status(404).json({
+         res.status(404).json({
           status: 'error',
           message: `Group with ID ${group_id} does not exist`,
         });
@@ -53,7 +48,7 @@ class Student_Controller {
           throw new Error('Each user must include group_id, user_id, and email');
         }
 
-        return student_group_members.create({
+         student_group_members.create({
           group_id,
           user_id,
           email
@@ -62,13 +57,13 @@ class Student_Controller {
 
       const createdMembers = await Promise.all(creationPromises);
 
-      return res.status(201).json({
+       res.status(201).json({
         status: 'success',
         message: 'Students added successfully',
         data: createdMembers
       });
     } catch (error: any) {
-      return res.status(500).json({
+       res.status(500).json({
         status: 'error',
         message: 'Failed to add students',
         error: error.message
@@ -94,40 +89,25 @@ class Student_Controller {
       } else if (Array.isArray(req.body.Users)) {
         await this.addUsers(req.body.Users, res);
       } else {
-        return res.status(400).json({
+         res.status(400).json({
           status: 'error',
           message: 'Invalid input. Provide either a CSV file or a user array.',
         });
       }
     } catch (error: any) {
       console.error('Import Error:', error);
-      return res.status(500).json({ status: 'error', message: 'Failed to import students', error: error.message });
+       res.status(500).json({ status: 'error', message: 'Failed to import students', error: error.message });
     }
   }
 
   async updateStudent(req: Request, res: Response) {
     const { id } = req.params;
-    const { group_id, user_id, email } = req.body;
-
-    if (!id) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Student membership ID is required in the URL',
-      });
-    }
-
-    if (!group_id && !user_id && !email) {
-      return res.status(400).json({
-        status: 'error',
-        message: 'Provide at least one field to update (group_id, user_id, email)',
-      });
-    }
- 
+    const { group_id, user_id, email } = req.body; 
     try {
       const member = await student_group_members.findOne({ where: { id: id } });
       console.log(id)
       if (!member) {
-        return res.status(404).json({
+         res.status(404).json({
           status: 'error',
           message: 'Student not found',
         });
@@ -139,13 +119,13 @@ class Student_Controller {
         email: email ?? member.email,
       });
 
-      return res.status(200).json({
+       res.status(200).json({
         status: 'success',
         message: 'Student updated successfully',
         data: member,
       });
     } catch (error: any) {
-      return res.status(500).json({
+       res.status(500).json({
         status: 'error',
         message: 'Failed to update student',
         error: error.message,
@@ -155,7 +135,7 @@ class Student_Controller {
 
   async FetchGroup(req: Request, res: Response) {
     const groups = await student_group.findAll();
-    return res.status(201).json({
+     res.status(201).json({
       status: "success",
       data: groups
     })
