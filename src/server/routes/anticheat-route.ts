@@ -5,5 +5,5 @@ import { protectUser, authorize } from '../middleware/authMiddleware';
 
 const anticheat = Router();
 
-anticheat.post('/create', protectUser, authorize('super_admin', 'admin', 'instructor'), anticheatController.create);
+anticheat.post('/create', protectUser,  anticheatController.create);
 anticheat.get('/exam/:exam_id', protectUser, authorize('super_admin', 'admin', 'instructor'), anticheatController.getByExam);
