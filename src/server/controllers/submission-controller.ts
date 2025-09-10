@@ -1,112 +1,41 @@
 import { Request, Response } from 'express';
-import ExamSubmission from '../models/exam_submissions';
-import Exam from '../models/exam';
-import question from '../models/question';
-import user from '../models/user';
+import submissionService from '../services/submission-service';
+import { success, fail } from '../utilis/response';
 
 class submissionController {
+  async submitExam(req: Request, res: Response) {
+    try {
+      const { exam_id, user_email, answers } = req.body;
+      const result = await submissionService.submitExam({ exam_id, user_email, answers, user_id: req.user!.id });
+      if (result.status === 'success') {
+        return success(res, { score: result.score }, 'Exam submitted successfully.', 200);
+      }
+      return fail(res, result.message || 'Failed to submit exam.', result.code || 400);
+    } catch (error: any) {
+      console.error('Exam submission error:', error);
+      return fail(res, 'Failed to submit exam.', 500);
+    }
+  }
 
+  async getStudentSubmissions(req: Request, res: Response) {
+    try {
+      const { exam_id, student_code } = req.params;
+      const result = await submissionService.getStudentSubmissions({ exam_id, student_code });
+      return success(res, { submissions: result.submissions }, 'Submissions fetched', 200);
+    } catch (error) {
+      return fail(res, 'Error fetching submissions.', 500);
+    }
+  }
 
-    async submitExam(req: Request, res: Response) {
-        const { exam_id, user_email, answers } = req.body;
-
-        const user_emails = await user.findByPk(req.user.id);
-        if (!user_email) {
-            return res.status(400).json({ message: 'User email is required.' });
-        }
-
-        if (!exam_id || !user_email || !answers || typeof answers !== 'object') {
-            return res.status(400).json({ message: 'exam_id, user_email, and answers are required.' });
-        }
-
-        try {
-            // 1. Check if exam exists
-            const exam = await Exam.findByPk(exam_id);
-            if (!exam) {
-                return res.status(404).json({ message: 'Exam not found.' });
-            }
-
-            // 2. Get all questions for this exam
-            const questions = await question.findAll({
-                where: { exam_id },
-                attributes: ['id', 'type', 'answer', 'max_score'],
-            });
-
-            // 3. Calculate total score
-            let totalScore = 0;
-
-            for (const question of questions) {
-                const submittedAnswer = answers[question.id];
-
-                if (
-                    question.type === 'objective' &&
-                    submittedAnswer?.toString().toLowerCase().trim() ===
-                    question.answer.toString().toLowerCase().trim()
-                ) {
-                    totalScore += question.max_score;
-                }
-            }
-
-            // 4. Check if already submitted
-            const existing = await ExamSubmission.findOne({
-                where: { exam_id, user_email },
-            });
- 
-            // 5. Save or update submission
-            const submission = await ExamSubmission.upsert({
-                id: existing?.id || uuidv4(),
-                exam_id,
-                user_email,
-                user_id: existing?.user_id || null,
-                answers, // raw answers object (JSON)
-                score: totalScore,
-                submitted: true,
-                submitted_at: new Date(),
-            });
-
-            return res.status(200).json({
-                message: 'Exam submitted successfully.',
-                score: totalScore,
-            });
-        } catch (error: any) {
-            console.error('Exam submission error:', error);
-            return res.status(500).json({
-                message: 'Failed to submit exam.',
-                error: error.message,
-            });
-        }
-    };
-
-    async getStudentSubmissions(req: Request, res: Response) {
-        try {
-            const { exam_id, student_code } = req.params;
-
-            const submissions = await Submission.findAll({
-                where: { exam_id, student_code },
-            });
-
-            res.status(200).json(submissions);
-        } catch (error) {
-            res.status(500).json({ message: 'Error fetching submissions.', error });
-        }
-    };
-
-    async getSubmissionForQuestion(req: Request, res: Response) {
-        try {
-            const { exam_id, student_code, question_id } = req.params;
-
-            const submission = await Submission.findOne({
-                where: { exam_id, student_code, question_id },
-            });
-
-            if (!submission) {
-                return res.status(404).json({ message: 'No submission found for question.' });
-            }
-
-            res.status(200).json(submission);
-        } catch (error) {
-            res.status(500).json({ message: 'Error fetching submission.', error });
-        }
-    };
+  async getSubmissionForQuestion(req: Request, res: Response) {
+    try {
+      const { exam_id, student_code, question_id } = req.params;
+      const result = await submissionService.getSubmissionForQuestion({ exam_id, student_code, question_id });
+      if (result.status === 'success') return success(res, { submission: result.submission }, 'Submission fetched', 200);
+      return fail(res, result.message || 'No submission found for question.', result.code || 404);
+    } catch (error) {
+      return fail(res, 'Error fetching submission.', 500);
+    }
+  }
 }
 export default new submissionController();

@@ -1,177 +1,73 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { Op } from 'sequelize';
-import user from '../models/user';
-import role from '../models/role';
-import organisation from '../models/organisation';
-import bcrypt from "bcryptjs";
-import { createUser, generateToken } from '../utilis/userService';
+import authService from '../services/auth-service';
+import { success, fail } from '../utilis/response';
+
 class AuthController {
-    async register(req: Request, res: Response, next: NextFunction) {
-        const { fullname, email, password, role_id, organisation_id, phone_number } = req.body;
-
-        try {
-            const existing = await user.findOne({ where: { email } });
-            if (existing) {
-                return res.status(400).json({ status: 'failed', message: 'Email has already been used' });
-            }
-
-            const org = await organisation.findOne({ where: { id: organisation_id } });
-            if (!org) {
-                return res.status(400).json({ status: 'failed', message: 'Invalid organisation' });
-            }
-
-            let finalRoleId = role_id;
-            if (!role_id) {
-                const defaultRole = await role.findOne({ where: { name: 'student' } });
-                if (!defaultRole) {
-                    return res.status(400).json({ status: 'failed', message: 'Default role not found' });
-                }
-                finalRoleId = defaultRole.id;
-            }
-
-            const userData = {
-                fullname,
-                email,
-                password,
-                role_id: finalRoleId,
-                organisation_id,
-                phone_number,
-            };
-
-            const response = await createUser(userData);
-            if (response.status === "success") {
-                return res.status(201).json(response);
-            }
-
-            return res.status(500).json({ status: 'error', message: 'Failed to register user' });
-
-        } catch (error) {
-            return next(error);
-        }
+  async register(req: Request, res: Response, next: NextFunction) {
+    try {
+      const response = await authService.register(req.body);
+      if (response.status === 'success') {
+        return success(res, response.data, 'User registered', 201);
+      }
+      if (response.status === 'failed') {
+        return fail(res, response.message || 'Registration failed', 400);
+      }
+      return fail(res, 'Failed to register user', 500);
+    } catch (error) {
+      return next(error);
     }
+  }
 
-    async login(req: Request, res: Response, next: NextFunction) {
-        const { email, password } = req.body;
-        const existingUser = await user.findOne({ where: { email } });
-        if (!existingUser || !(await existingUser.comparePassword(password))) {
-            return res.status(401).json({ status: 'error', message: 'Incorrect email or password' });
-        }
-        try {
-            existingUser.lastLogin = new Date();
-            await existingUser.save();
-            const token = generateToken(existingUser.id);
-            return res.status(200).json({
-                status: 'success',
-                data: {
-                    user: existingUser.email,
-                    token
-                }
-            });
-        } catch (error) {
-            next(error);
-        }
+  async login(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.login({ email: req.body.email, password: req.body.password });
+      if (result.status === 'success') return success(res, result.data, 'Login successful', 200);
+      return fail(res, result.message || 'Incorrect email or password', 401);
+    } catch (error) {
+      return next(error);
     }
+  }
 
-    async forgotPassword(req: Request, res: Response, next: NextFunction) {
-        const { email } = req.body;
-        const c_user = await user.findOne({ where: { email } });
-        if (!c_user) {
-            return res.status(404).json({ status: 'error', message: 'No user found with that email' });
-        }
-        try {
-            const resetToken = crypto.randomBytes(32).toString('hex');
-            c_user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-            c_user.resetPasswordExpires = Date.now() + 10 * 60 * 1000;
-            await c_user.save();
-            try {
-                await sendResetPasswordEmail(c_user.email, resetToken);
-                return res.json({ status: 'success', message: 'Reset token sent to email' });
-            } catch (emailError) {
-                c_user.resetPasswordToken = null;
-                c_user.resetPasswordExpires = null;
-                await c_user.save();
-                return res.status(500).json({ status: 'error', message: 'Error sending email. Please try again later.' });
-            }
-        } catch (error) {
-            next(error);
-        }
+  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.forgotPassword({ email: req.body.email });
+      if (result.status === 'success') return success(res, undefined, 'Reset token sent to email', 200);
+      const code = result.message?.includes('No user') ? 404 : 500;
+      return fail(res, result.message || 'Failed to generate reset token', code);
+    } catch (error) {
+      return next(error);
     }
+  }
 
-    async resetPassword(req: Request, res: Response, next: NextFunction) {
-        const { token } = req.params;
-        const { password } = req.body;
-        try {
-            const resetPasswordToken = bcrypt.createHash('sha256').update(token).digest('hex');
-            const resetUser = await user.findOne({
-                where: {
-                    resetPasswordToken,
-                    resetPasswordExpires: { [Op.gt]: Date.now() }
-                }
-            });
-            if (!resetUser) {
-                return res.status(400).json({ status: 'error', message: 'Token is invalid or has expired' });
-            }
-            resetUser.password = password;
-            resetUser.resetPasswordToken = null;
-            resetUser.resetPasswordExpires = null;
-            await resetUser.save();
-            const newToken = generateToken(resetUser.id);
-            return res.json({
-                status: 'success',
-                data: {
-                    user: resetUser.email,
-                    token: newToken
-                }
-            });
-        } catch (error) {
-            next(error);
-        }
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.resetPassword({ token: req.params.token, password: req.body.password });
+      if (result.status === 'success') return success(res, result.data, 'Password reset successful', 200);
+      return fail(res, result.message || 'Token is invalid or has expired', 400);
+    } catch (error) {
+      return next(error);
     }
+  }
 
-    async changePassword(req: Request, res: Response, next: NextFunction) {
-        const { currentPassword, newPassword } = req.body;
-        const userId = req.user?.id;
-        const currentUser = await user.findByPk(userId);
-        if (!currentUser || !(await currentUser.comparePassword(currentPassword))) {
-           return res.status(401).json({ status: 'error', message: 'Current password is incorrect' });
-        }
-        try {
-            currentUser.password = newPassword;
-            await currentUser.save();
-          return res.json({ status: 'success', message: 'Password updated successfully' });
-        } catch (error) {
-            next(error);
-        }
+  async changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.changePassword({ userId: req.user!.id, currentPassword: req.body.currentPassword, newPassword: req.body.newPassword });
+      if (result.status === 'success') return success(res, undefined, 'Password updated successfully', 200);
+      return fail(res, result.message || 'Current password is incorrect', 401);
+    } catch (error) {
+      return next(error);
     }
+  }
 
-    async logout(req: Request, res: Response) {
-        const token = req.headers.authorization?.split(" ")[1];
-        if (!token) {
-          return  res.status(400).json({ status: "error", message: "Token not provided" });
-        }
-        try {
-            let decoded: any;
-            try {
-                decoded = jwt.verify(token, process.env.JWT_SECRET!);
-            } catch (error) {
-              return  res.status(401).json({ status: "error", message: "Invalid or expired token" });
-            }
-          return  res.status(200).json({
-                status: "success",
-                message: "User successfully logged out",
-                userId: decoded.id,
-            });
-        } catch (error: any) {
-            return res.status(500).json({
-                status: "error",
-                message: "Logout failed due to an internal error",
-                error: error.message,
-            });
-        }
-    }
+  async logout(req: Request, res: Response) {
+    const token = req.headers.authorization?.split(' ')[1];
+    const result = await authService.logout({ token });
+    if (result.status === 'success') return success(res, { userId: (result as any).userId }, 'Logged out', 200);
+    const code = result.message === 'Token not provided' ? 400 : 401;
+    return fail(res, result.message || 'Logout failed', code);
+  }
 }
 
-// Export an instance of the controller
 const authController = new AuthController();
 export default authController;

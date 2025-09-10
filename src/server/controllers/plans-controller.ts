@@ -1,62 +1,47 @@
-import {Response,Request,NextFunction} from "express";
-import plan from "../models/plan.ts";
+import { Response, Request, NextFunction } from 'express';
+import plansService from '../services/plans-service';
+import { success, fail } from '../utilis/response';
 
 class PlansController {
-    async getPlans(req: Request, res: Response, next: NextFunction) {
-        try {
-            const plans = await plan.findAll();
-            return res.status(200).json({ status: 'success', data: plans });
-        } catch (error) {
-            return res.status(500).json({ status: 'error', message: 'Failed to fetch plans', error: error.message });
-        }
+  async getPlans(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await plansService.getPlans();
+      return success(res, result.data, 'Plans fetched', 200);
+    } catch (error: any) {
+      return fail(res, 'Failed to fetch plans', 500);
     }
+  }
 
-    async createPlan(req: Request, res: Response, next: NextFunction) {
-        const { name, description, price } = req.body;
-        if (!name || !description || !price) {
-            return res.status(400).json({ status: 'error', message: 'Name, description and price are required' });
-        }
-        try {
-            const newPlan = await plan.create({ name, description, price });
-            return res.status(201).json({ status: 'success', data: newPlan });
-        } catch (error) {
-            return res.status(500).json({ status: 'error', message: 'Failed to create plan', error: error.message });
-        }
+  async createPlan(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await plansService.createPlan(req.body);
+      if (result.status === 'success') return success(res, result.data, 'Plan created', 201);
+      return fail(res, result.message || 'Failed to create plan', result.code || 400);
+    } catch (error: any) {
+      return fail(res, 'Failed to create plan', 500);
     }
+  }
 
-    async updatePlan(req: Request, res: Response, next: NextFunction) {
-        const { id } = req.params;
-        const { name, description, price } = req.body;
-        if (!name || !description || !price) {
-            return res.status(400).json({ status: 'error', message: 'Name, description and price are required' });
-        }
-        try {
-            const planToUpdate = await plan.findByPk(id);
-            if (!planToUpdate) {
-                return res.status(404).json({ status: 'error', message: 'Plan not found' });
-            }
-            planToUpdate.name = name;
-            planToUpdate.description = description;
-            planToUpdate.price = price;
-            await planToUpdate.save();
-            return res.status(200).json({ status: 'success', data: planToUpdate });
-        } catch (error) {
-            return res.status(500).json({ status: 'error', message: 'Failed to update plan', error: error.message });
-        }
+  async updatePlan(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await plansService.updatePlan(id, req.body);
+      if (result.status === 'success') return success(res, result.data, 'Plan updated', 200);
+      return fail(res, result.message || 'Failed to update plan', result.code || 400);
+    } catch (error: any) {
+      return fail(res, 'Failed to update plan', 500);
     }
+  }
 
-    async deletePlan(req: Request, res: Response, next: NextFunction) {
-        const { id } = req.params;
-        try {
-            const planToDelete = await plan.findByPk(id);
-            if (!planToDelete) {
-                return res.status(404).json({ status: 'error', message: 'Plan not found' });
-            }
-            await planToDelete.destroy();
-            return res.status(200).json({ status: 'success', message: 'Plan deleted successfully' });
-        } catch (error) {
-            return res.status(500).json({ status: 'error', message: 'Failed to delete plan', error: error.message });
-        }
+  async deletePlan(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await plansService.deletePlan(id);
+      if (result.status === 'success') return success(res, undefined, result.message, 200);
+      return fail(res, result.message || 'Plan not found', result.code || 404);
+    } catch (error: any) {
+      return fail(res, 'Failed to delete plan', 500);
     }
+  }
 }
 export default new PlansController();

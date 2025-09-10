@@ -1,104 +1,64 @@
 import { Request, Response } from 'express';
-import question from '../models/question';
-import Exam from '../models/exam';
-import question_category from '../models/question-category';
+import questionService from '../services/question-service';
+import { success, fail } from '../utilis/response';
 
 class QuestionController {
-    async createQuestion(req: Request, res: Response) {
-        const questions: any[] = req.body.questions;
-        const examId = req.body.examId;
+  async createQuestion(req: Request, res: Response) {
+    const { questions, examId } = req.body;
+    try {
+      const result = await questionService.createMany({ examId, questions });
+      if (result.status === 'success') {
+        return success(res, { questions: result.questions }, `${result.questions.length} questions created successfully.`, 201);
+      }
+      return fail(res, result.message || 'Failed to create questions.', result.code || 400);
+    } catch (error) {
+      return fail(res, 'Failed to create questions.', 500);
+    }
+  }
 
-        if (!Array.isArray(questions) || questions.length === 0) {
-            return res.status(400).json({ message: 'Questions array is required.' });
-        }
-        for (const [index, q] of questions.entries()) {
-            const requiredFields = ['type', 'max_score', 'content'];
-            const missingFields = requiredFields.filter(field => !q[field]);
-            if (missingFields.length > 0) {
-                return res.status(400).json({
-                    message: `Missing fields in question ${index + 1}: ${missingFields.join(', ')}`,
-                });
-            }
-        }
-       const exam = await Exam.findByPk(examId);
-        if (!exam) return res.status(404).json({ message: 'Exam not found.' });
-        try {
-            // Prepare the question payloads
-            const questionData = questions.map(q => ({
-                exam_id: examId,
-                type: q.type,
-                max_score: q.max_score,
-                mediaUrl: q.mediaUrl,
-                files: q.files,
-                content: q.content,
-                option: q.options || [],
-                answer: q.answer,
-            }));
+  async getQuestionsByExam(req: Request, res: Response) {
+    try {
+      const { exam_id } = req.params;
+      const result = await questionService.getByExam(exam_id);
+      return success(res, { questions: result.questions }, 'Questions fetched', 200);
+    } catch (error) {
+      return fail(res, 'Error fetching questions.', 500);
+    }
+  }
 
-            // Bulk create all questions
-            const createdQuestions = await question.bulkCreate(questionData);
+  async getSingleQuestion(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await questionService.getOne(id);
+      if (result.status === 'success') return success(res, { question: result.question }, 'Question fetched', 200);
+      return fail(res, result.message || 'Question not found.', result.code || 404);
+    } catch (error) {
+      return fail(res, 'Error fetching question.', 500);
+    }
+  }
 
-            res.status(201).json({ message: `${createdQuestions.length} questions created successfully.`, questions: createdQuestions });
-        } catch (error) {
-            res.status(500).json({ message: 'Failed to create questions.', error });
-        }
-    };
+  async updateQuestion(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      const result = await questionService.update(id, updates);
+      if (result.status === 'success') return success(res, { question: result.question }, 'Question updated', 200);
+      return fail(res, result.message || 'Question not found.', result.code || 404);
+    } catch (error) {
+      return fail(res, 'Failed to update question.', 500);
+    }
+  }
 
-    async getQuestionsByExam(req: Request, res: Response) {
-
-        const { exam_id } = req.params;
-        try {
-            const questions = await question.findAll({ where: { exam_id } });
-            res.status(200).json(questions);
-        } catch (error) {
-            res.status(500).json({ message: 'Error fetching questions.', error });
-        }
-    };
-
-    async getSingleQuestion(req: Request, res: Response) {
-        const { id } = req.params;
-        try {
-
-            const questions = await question.findByPk(id);
-            if (!questions) return res.status(404).json({ message: 'Question not found.' });
-            res.status(200).json(questions);
-        } catch (error) {
-            res.status(500).json({ message: 'Error fetching question.', error });
-        }
-    };
-
-    async updateQuestion(req: Request, res: Response) {
-        const { id } = req.params;
-        const updates = req.body;
-        try {
-            const questions = await question.findByPk(id);
-            if (!questions) return res.status(404).json({ message: 'Question not found.' });
-
-            await questions.update({
-                ...updates,
-                option: updates.options || questions.option
-            });
-
-            res.status(200).json(questions);
-        } catch (error) {
-            res.status(500).json({ message: 'Failed to update question.', error });
-        }
-    };
-
-    async deleteQuestion(req: Request, res: Response) {
-        try {
-            const { id } = req.params;
-            const questions = await question.findByPk(id);
-            if (!questions) return res.status(404).json({ message: 'Question not found.' });
-
-            await questions.destroy();
-            res.status(200).json({ message: 'Question deleted successfully.' });
-        } catch (error) {
-            res.status(500).json({ message: 'Failed to delete question.', error });
-        }
-    };
-
-
+  async deleteQuestion(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const result = await questionService.destroy(id);
+      if (result.status === 'success') return success(res, undefined, result.message, 200);
+      return fail(res, result.message || 'Question not found.', result.code || 404);
+    } catch (error) {
+      return fail(res, 'Failed to delete question.', 500);
+    }
+  }
 }
 
 export default new QuestionController(); 

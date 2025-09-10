@@ -1,76 +1,27 @@
 import { Request, Response } from 'express';
-import student_group from '../models/student_group';
-import student_group_members from '../models/student_group_member';
-import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import csvParser from 'csv-parser';
-import { group } from 'console';
+import groupingService from '../services/grouping-service';
+import { success, fail } from '../utilis/response';
 
 class Student_Controller {
-  constructor() { }
+  constructor() {}
 
   async creategroup(req: Request, res: Response) {
     const { name, instructor_id, organisation_id } = req.body;
     try {
-      const group = await student_group.create({
-        name,
-        instructor_id,
-        organisation_id
-      });
-
-       res.status(201).json({ status: 'success', data: group });
+      const result = await groupingService.createGroup({ name, instructor_id, organisation_id });
+      return success(res, result.data, 'Group created', 201);
     } catch (error: any) {
-       res.status(500).json({ status: 'error', message: 'Failed to create group', error: error.message });
+      return fail(res, 'Failed to create group', 500);
     }
   }
 
   async addUsers(users: any[], res: Response) {
-    if (!Array.isArray(users) || users.length === 0) {
-       res.status(400).json({ status: 'error', message: 'Please provide an array of users' });
-    }
-
-    try {
-      // Validate group existence first
-      const group_id = users[0].group_id;
-
-      const group = await student_group.findByPk(group_id);
-      if (!group) {
-         res.status(404).json({
-          status: 'error',
-          message: `Group with ID ${group_id} does not exist`,
-        });
-      }
-
-      const creationPromises = users.map(user => {
-        const { group_id, user_id, email } = user;
-
-        if (!group_id || !user_id || !email) {
-          throw new Error('Each user must include group_id, user_id, and email');
-        }
-
-         student_group_members.create({
-          group_id,
-          user_id,
-          email
-        });
-      });
-
-      const createdMembers = await Promise.all(creationPromises);
-
-       res.status(201).json({
-        status: 'success',
-        message: 'Students added successfully',
-        data: createdMembers
-      });
-    } catch (error: any) {
-       res.status(500).json({
-        status: 'error',
-        message: 'Failed to add students',
-        error: error.message
-      });
-    }
+    const result = await groupingService.addUsers(users);
+    if (result.status === 'success') return success(res, result.data, result.message, 201);
+    return fail(res, result.message || 'Failed to add students', result.code || 400);
   }
-
 
   async importStudents(req: Request, res: Response) {
     try {
@@ -89,56 +40,29 @@ class Student_Controller {
       } else if (Array.isArray(req.body.Users)) {
         await this.addUsers(req.body.Users, res);
       } else {
-         res.status(400).json({
-          status: 'error',
-          message: 'Invalid input. Provide either a CSV file or a user array.',
-        });
+        return fail(res, 'Invalid input. Provide either a CSV file or a user array.', 400);
       }
     } catch (error: any) {
       console.error('Import Error:', error);
-       res.status(500).json({ status: 'error', message: 'Failed to import students', error: error.message });
+      return fail(res, 'Failed to import students', 500);
     }
   }
 
   async updateStudent(req: Request, res: Response) {
     const { id } = req.params;
-    const { group_id, user_id, email } = req.body; 
+    const { group_id, user_id, email } = req.body;
     try {
-      const member = await student_group_members.findOne({ where: { id: id } });
-      console.log(id)
-      if (!member) {
-         res.status(404).json({
-          status: 'error',
-          message: 'Student not found',
-        });
-      }
-
-      await member.update({
-        group_id: group_id ?? member.group_id,
-        user_id: user_id ?? member.user_id,
-        email: email ?? member.email,
-      });
-
-       res.status(200).json({
-        status: 'success',
-        message: 'Student updated successfully',
-        data: member,
-      });
+      const result = await groupingService.updateStudent({ id, group_id, user_id, email });
+      if (result.status === 'success') return success(res, result.data, result.message, 200);
+      return fail(res, result.message || 'Failed to update student', result.code || 404);
     } catch (error: any) {
-       res.status(500).json({
-        status: 'error',
-        message: 'Failed to update student',
-        error: error.message,
-      });
+      return fail(res, 'Failed to update student', 500);
     }
   }
 
   async FetchGroup(req: Request, res: Response) {
-    const groups = await student_group.findAll();
-     res.status(201).json({
-      status: "success",
-      data: groups
-    })
+    const result = await groupingService.fetchGroups();
+    return success(res, result.data, 'Groups fetched', 200);
   }
 }
 

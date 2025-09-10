@@ -1,32 +1,24 @@
 import { Request, Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
-import Exam from '../models/exam';
-import user from '../models/user';
-import antiCheat from '../models/anti-cheat';
-import ExamCredentials from '../models/exam_credentials';
-import { sendEmail } from '../utilis/email';
-import anti_cheat from '../models/anti-cheat';
+import antiCheatService from '../services/anti-cheat-service';
+import { success, fail } from '../utilis/response';
 
 class AntiCheatController {
   // ✅ Create Anti-Cheat Record
   static async create(req: Request, res: Response) {
     const { exam_id, description } = req.body;
-    const user = req.user;
-
-
+    const authUser = req.user;
 
     try {
-      const newAntiCheat = await antiCheat.create({
-        id: uuidv4(),
+      const newAntiCheat = await antiCheatService.createAntiCheatRecord({
         exam_id,
-        user_id: user.id,
-        description: description,
+        user_id: authUser.id,
+        description,
       });
 
-      res.status(201).json({ success: true, antiCheat: newAntiCheat });
+      return success(res, { antiCheat: newAntiCheat }, 'Anti-cheat record created', 201);
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: 'Failed to create anti-cheat record' });
+      return fail(res, 'Failed to create anti-cheat record', 500);
     }
   }
 
@@ -35,28 +27,22 @@ class AntiCheatController {
     const { exam_id } = req.params;
 
     try {
-      const records = await antiCheat.findAll({ where: { exam_id } });
-
-      res.status(200).json({ success: true, records });
+      const records = await antiCheatService.getRecordsByExam(exam_id);
+      return success(res, { records });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ success: false, message: 'Failed to retrieve anti-cheat records' });
+      return fail(res, 'Failed to retrieve anti-cheat records', 500);
     }
   }
-  async getbyUserId(userId: string, res: Response) {
+
+  static async getByUser(req: Request, res: Response) {
     try {
-
-      const cheat = await anti_cheat.findByPk(userId);
-
-      if (!cheat) {
-        res.status(404).json({ success: false, message: 'User not found' });
-      }
-
-      res.status(200).json
-        ({ success: true, message: 'USer found', data: cheat });
+      const authUser = req.user;
+      const records = await antiCheatService.getRecordsByUser(authUser.id);
+      return success(res, { records });
     } catch (error) {
-      console.error('Error sending exam credentials:', error);
-      res.status(400).json({ success: false, message: 'Failed to send exam credentials' });
+      console.error('Error fetching user anti-cheat records:', error);
+      return fail(res, 'Failed to fetch anti-cheat records', 400);
     }
   }
 }
