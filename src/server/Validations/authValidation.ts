@@ -4,7 +4,7 @@ export const registerValidation = [
     body('fullname').isString().isLength({ min: 3, max: 30 }).withMessage('Full name must be 3–30 characters long'),
     body('email').isEmail().withMessage('A valid email is required'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('organisation_id').notEmpty().withMessage('Organisation is required'),
+    body('organisation_id').optional().isAlphanumeric().withMessage('Organisation is required'),
     body('role_id').optional().isInt().withMessage('Role must be a valid UUID'),
     body('phone_number').optional().isString(),
 ];
