@@ -5,28 +5,21 @@ import { success, fail } from '../utilis/response';
 
 class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
-    try {
-      const response = await authService.register(req.body);
-      if (response.status === 'success') {
-        return success(res, response.data, 'User registered', 201);
-      }
-      if (response.status === 'failed') {
-        return fail(res, response.message || 'Registration failed', 400);
-      }
-      return fail(res, 'Failed to register user', 500);
-    } catch (error) {
-      return next(error);
+    const response = await authService.register(req.body);
+    if (response.status === 'success') {
+      return success(res, response.data, 'User registered', 201);
+    }
+    if (response.status === 'failed') {
+      return fail(res, response.message || 'Registration failed', 400);
     }
   }
 
   async login(req: Request, res: Response, next: NextFunction) {
-    try {
-      const result = await authService.login({ email: req.body.email, password: req.body.password });
-      if (result.status === 'success') return success(res, result.data, 'Login successful', 200);
-      return fail(res, result.message || 'Incorrect email or password', 401);
-    } catch (error) {
-      return next(error);
-    }
+
+    const result = await authService.login({ email: req.body.email, password: req.body.password });
+    if (result.status === 'success') return success(res, result.data, 'Login successful', 200);
+    return fail(res, result.message || 'Incorrect email or password', 401);
+
   }
 
   async forgotPassword(req: Request, res: Response, next: NextFunction) {
