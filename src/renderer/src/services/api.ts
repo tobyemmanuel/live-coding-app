@@ -15,6 +15,7 @@ export const apiService = {
   },
 
   async updateSettings(settings: Partial<AppSettings>): Promise<AppSettings> {
+
     const response = await api.put<ApiResponse<AppSettings>>(
       '/settings',
       settings
@@ -23,6 +24,7 @@ export const apiService = {
   },
 
   async healthCheck(): Promise<boolean> {
+
     try {
       await api.get('/health')
       return true

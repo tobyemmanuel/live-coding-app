@@ -29,7 +29,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         if (i === 1) {
           // Try to fetch settings
           try {
-            await apiService.getSettings()
+            // await apiService.getSettings()
           } catch (error) {
             console.warn('Failed to fetch settings:', error)
           }

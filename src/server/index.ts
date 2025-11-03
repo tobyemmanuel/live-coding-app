@@ -6,7 +6,16 @@ import compression from 'compression'
 import { config } from 'dotenv'
 import { settingsRouter } from './routes/settings'
 import { initDatabase } from './database/db'
+import { connectDB } from './config/db.ts';
+import auth from './routes/auth-route.ts'
+import exam from './routes/exam-route';
+import organisation from './routes/organisation-route.ts';
+import question from './routes/question-route.ts';
+import group from './routes/grouping-route.ts';
+import role from './routes/role-route.ts';
+import { createRoles } from './utilis/makeRole.ts'
 
+ 
 config()
 
 const app = express()
@@ -20,9 +29,9 @@ app.use(morgan('combined'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+
 // Initialize database
 initDatabase()
-
 // Routes
 app.use('/api/settings', settingsRouter)
 
@@ -36,7 +45,13 @@ app.get('/api/health', (req, res) => {
   })
 })
 
-// Error handling middleware
+app.use('/api', auth);
+app.use('/api', exam);
+app.use('/api', organisation);
+app.use('/api', question);
+app.use('/api', group)
+app.use ('/api',role)
+// Error handling middleware   
 app.use(
   (
     err: Error,
@@ -61,8 +76,21 @@ app.use(/^\/.*/, (req, res) => {
   });
 });
 
+// Connect to the database
+connectDB()
+  .then(() => {
+    console.log('✅ Database connection established')
+    createRoles()
+  })
+  .catch((error) => {
+    console.error('❌ Database connection failed:', error)
+    process.exit(1)
+  });
+
 app.listen(PORT, () => {
+
   console.log(`🚀 API Server running on http://localhost:${PORT}`)
+  console.log(`Swagger documentation available at http://localhost:${PORT}/api-docs`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`)
 })
 
